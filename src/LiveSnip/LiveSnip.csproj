@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <ApplicationIcon>assets\icon.ico</ApplicationIcon>
+
+    <!-- Datos que aparecen en Propiedades > Detalles del .exe -->
+    <Product>LiveSnip</Product>
+    <AssemblyTitle>LiveSnip</AssemblyTitle>
+    <Description>Captura de pantalla que no congela los monitores</Description>
+    <Authors>Victor Sihachinger</Authors>
+    <Company>Victor Sihachinger</Company>
+    <Copyright>© 2026 Victor Sihachinger</Copyright>
+    <Version>1.0.0</Version>
+    <!-- Sin esto .NET agrega el hash del commit a la version -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <!-- Coordenadas reales en pantallas con escala (125%, 150%...) -->
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+  </PropertyGroup>
+
+</Project>
