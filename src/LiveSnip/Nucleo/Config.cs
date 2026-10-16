@@ -1,0 +1,52 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
+namespace LiveSnip.Nucleo;
+
+// Ajustes del usuario, guardado en %LOCALAPPDATA%\LiveSnip\config.json
+public class Config
+{
+    // Combinacion de Modificador + Tecla (Ctrl + Alt por defecto)
+    public uint Modificadores { get; set; } = ModificadorTecla.Ctrl | ModificadorTecla.Alt;
+    public int Tecla { get; set; } = (int)Keys.S;
+    public string Carpeta { get; set; } = "";       // vacio = automatica
+    public int Aspecto { get; set; } = 0;           // indice en RelacionAspecto.Todas
+    public bool PedirNombre { get; set; } = false;  // pregunta el nombre al guardar
+    public bool IniciarConWindows { get; set; } = false; // arrancar con Windows
+
+    static readonly string Ruta = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "LiveSnip", "config.json");
+
+    [JsonIgnore] public string Atajo => Describir(Modificadores, (Keys)Tecla);
+    [JsonIgnore] public RelacionAspecto Relacion => RelacionAspecto.Desde(Aspecto);
+
+    // Devuelve la config y si es la primera vez que se abre la app
+    public static (Config Config, bool PrimeraVez) Cargar() {
+        try {
+            if (File.Exists(Ruta))
+                return (JsonSerializer.Deserialize<Config>(File.ReadAllText(Ruta)) ?? new Config(), false);
+        }
+        catch { /* archivo danado: se usan los valores por defecto */ }
+        return (new Config(), true);
+    }
+
+    public void Guardar() {
+        try {
+            Directory.CreateDirectory(Path.GetDirectoryName(Ruta)!);
+            File.WriteAllText(Ruta, JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true }));
+        }
+        catch { /* si no se puede guardar, sigue funcionando con lo actual */ }
+    }
+
+    public Config Copiar() => (Config)MemberwiseClone();
+
+    // "Ctrl + Alt + S" de default 
+    public static string Describir(uint modificadores, Keys tecla) {
+        var partes = new List<string>();
+        if ((modificadores & ModificadorTecla.Ctrl) != 0) partes.Add("Ctrl");
+        if ((modificadores & ModificadorTecla.Alt) != 0) partes.Add("Alt");
+        if ((modificadores & ModificadorTecla.Shift) != 0) partes.Add("Shift");
+        partes.Add(tecla.ToString());
+        return string.Join(" + ", partes);
+    }
+}
