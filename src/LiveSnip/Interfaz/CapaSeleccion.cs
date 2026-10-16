@@ -80,7 +80,7 @@ class CapaSeleccion : Form {
         var grafico = e.Graphics;
 
         // Mensaje arriba sobre el overlay
-        string ayuda = $"Arrastra para elegir  |  0 Libre | 1 1:1 | 2 4:3 | 3 16:9 | 4 9:16 | 5 3:2  |  Esc cancela  |  Aspecto: {Relacion.Nombre}";
+        string ayuda = $"Arrastre para elegir  |  0 Libre | 1 1:1 | 2 4:3 | 3 16:9 | 4 9:16 | 5 3:2  |  Esc cancela  |  Aspecto: {Relacion.Nombre}";
         using var fuente = new Font("Segoe UI", 11);
         var tam = grafico.MeasureString(ayuda, fuente);
         grafico.DrawString(ayuda, fuente, Brushes.White, (Width - tam.Width) / 2, 20);
