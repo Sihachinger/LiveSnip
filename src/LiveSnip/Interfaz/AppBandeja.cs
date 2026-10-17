@@ -14,6 +14,7 @@ class AppBandeja : ApplicationContext {
     Config _config;
 
     bool _capturando;        // evita abrir dos selecciones a la vez
+    bool _avisoDeGuardado;   // true si el ultimo aviso fue "Copiada y guardada" (seria el unico que abre la carpeta al tocarlo)
     bool _configAbierta;     // evita abrir dos ventanas de configuracion
 
     public AppBandeja(ICapturadorPantalla capturador, IAlmacenCapturas almacen, IInicioAutomatico inicio) {
@@ -34,6 +35,7 @@ class AppBandeja : ApplicationContext {
             ContextMenuStrip = CrearMenu()
         };
         _icono.DoubleClick += (_, _) => Capturar();
+        _icono.BalloonTipClicked += (_, _) => { if (_avisoDeGuardado) AbrirCarpeta(); };
 
         _atajo = new VentanaAtajo(Capturar);
         AplicarAtajo();
@@ -92,6 +94,7 @@ class AppBandeja : ApplicationContext {
             Directory.CreateDirectory(_almacen.Carpeta);
             Process.Start(new ProcessStartInfo(_almacen.Carpeta) { UseShellExecute = true });
         } catch (Exception ex) {
+            _avisoDeGuardado = false;
             _icono.ShowBalloonTip(3000, "LiveSnip", "No se pudo abrir la carpeta: " + ex.Message, ToolTipIcon.Error);
         }
     }
@@ -156,8 +159,10 @@ class AppBandeja : ApplicationContext {
             if (_config.PedirNombre) nombre = VentanaNombre.Pedir(nombre);
 
             _almacen.Guardar(imagen, nombre);
+            _avisoDeGuardado = true;
             _icono.ShowBalloonTip(1500, "LiveSnip", "Copiada y guardada en " + _almacen.Carpeta, ToolTipIcon.None);
         } catch (Exception ex) {
+            _avisoDeGuardado = false;
             _icono.ShowBalloonTip(3000, "LiveSnip", "Error: " + ex.Message, ToolTipIcon.Error);
         } finally {
             _capturando = false;
