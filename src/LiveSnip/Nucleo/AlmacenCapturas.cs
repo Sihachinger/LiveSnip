@@ -35,6 +35,9 @@ public sealed class AlmacenCapturas : IAlmacenCapturas {
 
     // Guardado como PNG y devuelve la ruta final (agregando -2, -3... si el nombre ya existe)
     public string Guardar(Bitmap imagen, string nombre) {
+        // Si se borró la carpeta con la app abierta, se vuelve a crear para evitar un posible fallo
+        Directory.CreateDirectory(Carpeta);
+
         var ruta = Path.Combine(Carpeta, nombre + ".png");
         for (int i = 2; File.Exists(ruta); i++)
             ruta = Path.Combine(Carpeta, $"{nombre}-{i}.png");

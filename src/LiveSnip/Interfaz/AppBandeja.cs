@@ -80,11 +80,20 @@ class AppBandeja : ApplicationContext {
         menu.Items.Add(aspecto);
 
         menu.Items.Add("Configuracion...", null, (_, _) => AbrirConfiguracion());
-        menu.Items.Add("Abrir carpeta", null, (_, _) =>
-            Process.Start(new ProcessStartInfo(_almacen.Carpeta) { UseShellExecute = true }));
+        menu.Items.Add("Abrir carpeta", null, (_, _) => AbrirCarpeta());
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("Salir", null, (_, _) => Salir());
         return menu;
+    }
+
+    // Abre la carpeta de capturas en el Explorador, si no existe la crea y si falla avisa
+    void AbrirCarpeta() {
+        try {
+            Directory.CreateDirectory(_almacen.Carpeta);
+            Process.Start(new ProcessStartInfo(_almacen.Carpeta) { UseShellExecute = true });
+        } catch (Exception ex) {
+            _icono.ShowBalloonTip(3000, "LiveSnip", "No se pudo abrir la carpeta: " + ex.Message, ToolTipIcon.Error);
+        }
     }
 
     void GuardarAspecto(RelacionAspecto relacion) {
