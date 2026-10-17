@@ -108,8 +108,10 @@ El comienzo del historial de commits de este repositorio es una **reconstrucció
 - **Constantes con nombre para los modificadores de teclado.** Los valores `0x0001`, `0x0002` y `0x0004` aparecían repetidos como números sueltos, ahora están en `ModificadorTecla`.
 - **Comentarios:** se reescribieron y se agregaron algunos comentarios para explicar el flujo y hacer más claro el codigo.
 - **Pruebas:** se agregó el proyecto `tests/LiveSnip.Tests` (xUnit 2.9.3, Microsoft.NET.Test.Sdk 17.14.1, xunit.runner.visualstudio 3.1.4). Para experimentar con xUnit.
+- **Carpeta de capturas recreada si se borra.** Si se borra con la aplicación abierta, se vuelve a crear al guardar o al usar "Abrir carpeta" (antes el guardado fallaba), y si "Abrir carpeta" falla se muestra un aviso con el motivo.
+- **Función nueva:** al tocar el aviso "Copiada y guardada en…" se abre la carpeta de capturas.
 
-El comportamiento de la aplicación es el mismo que el del original.
+Salvo lo indicado en los dos últimos puntos, el comportamiento de la aplicación es el mismo que el del original.
 
 ## Licencia
 
