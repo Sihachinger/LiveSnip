@@ -4,6 +4,14 @@ Captura de pantalla para Windows **que NO congela las pantallas**.
 
 Las herramientas habituales (Win+Shift+S, Herramienta de recortes) sacan una foto de todos los monitores y la muestran congelada para elegir la zona. LiveSnip no, dibuja una capa semitransparente sobre **un unico monitor**, así que todo lo demás (otros monitores, videos, pantallas externas) sigue en vivo.
 
+## Descargar
+
+1. Vaya a [Releases](https://github.com/Sihachinger/LiveSnip/releases/latest).
+2. Descargue `LiveSnip.exe`.
+3. Ejecútelo. No necesita instalación ni .NET.
+
+Windows SmartScreen puede avisar porque el programa no está firmado, para utilizarlo pulse "Más información" → "Ejecutar de todas formas".
+
 ## Uso
 
 1. Ejecute `LiveSnip.exe`. La primera vez se abre la configuración para elegir el atajo, después queda ya en la bandeja del sistema.
