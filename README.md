@@ -26,6 +26,7 @@ Windows SmartScreen puede avisar porque el programa no está firmado, para utili
 | `3` | 16:9 |
 | `4` | 9:16 |
 | `5` | 3:2 |
+| `6` | Personalizada (por defecto 21:9) |
 | `Esc` o clic derecho | Cancelar |
 
 El aspecto también se puede fijar desde el menú del icono (clic derecho). Este queda guardado para la próxima vez.
@@ -59,7 +60,7 @@ Las pruebas (xUnit) cubren la lógica sin ventanas, el cálculo de relaciones de
 Clic derecho en el icono → **Configuración...** para cambiar:
 
 - **Atajo:** haga clic en el campo y pulse la combinación (debe incluir Ctrl, Alt o Shift).
-- **Aspecto por defecto.**
+- **Aspecto por defecto.** Al elegir "Personalizada" se habilitan dos casillas para escribir el ancho y el alto como números enteros (de 1 a 32), por ejemplo 21 y 9. Esa relación es la que se usa con la tecla `6`.
 - **Carpeta de guardado.**
 - **Preguntar el nombre:** si se activa, tras cada captura aparece un cuadro para escribir el nombre (con o sin `.png`). Si se deja vacío o se cancela, se usa la fecha y hora. Si ya existe un archivo con ese nombre, se agrega `-2`, `-3`...
 - **Iniciar con Windows:** arranca la app al iniciar sesión (usa la clave `Run` del usuario, no necesita administrador). Si se mueve el `.exe`, hay que abrirlo una vez para que se actualice la ruta.
@@ -110,9 +111,10 @@ El comienzo del historial de commits de este repositorio es una **reconstrucció
 - **Pruebas:** se agregó el proyecto `tests/LiveSnip.Tests` (xUnit 2.9.3, Microsoft.NET.Test.Sdk 17.14.1, xunit.runner.visualstudio 3.1.4). Para experimentar con xUnit.
 - **Carpeta de capturas recreada si se borra.** Si se borra con la aplicación abierta, se vuelve a crear al guardar o al usar "Abrir carpeta" (antes el guardado fallaba), y si "Abrir carpeta" falla se muestra un aviso con el motivo.
 - **Función nueva:** al tocar el aviso "Copiada y guardada en…" se abre la carpeta de capturas.
+- **Función nueva: relación de aspecto personalizada.** El usuario puede escribir su propia relación (ancho y alto enteros) en la configuración, elegirla desde el menú del icono o con la tecla `6`. El original solo tenía las seis relaciones fijas.
 - **Aviso si el archivo de configuración está dañado.** Antes se usaban los valores por defecto sin decir nada, ahora se muestra un mensaje antes de abrir la configuración.
 
-Salvo lo indicado en los puntos de la carpeta recreada, la función nueva y el aviso de configuración dañada, el comportamiento de la aplicación es el mismo que el del original.
+Salvo lo indicado en los puntos de la carpeta recreada, las funciones nuevas y el aviso de configuración dañada, el comportamiento de la aplicación es el mismo que el del original.
 
 ## Licencia
 
