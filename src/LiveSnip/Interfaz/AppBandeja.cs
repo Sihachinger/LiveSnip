@@ -22,7 +22,7 @@ class AppBandeja : ApplicationContext {
         _almacen = almacen;
         _inicio = inicio;
 
-        var (config, primeraVez) = Config.Cargar();
+        var (config, primeraVez, danado) = Config.Cargar();
         _config = config;
         _almacen.Configurar(_config.Carpeta);
 
@@ -39,6 +39,11 @@ class AppBandeja : ApplicationContext {
 
         _atajo = new VentanaAtajo(Capturar);
         AplicarAtajo();
+
+        // Si no se pudo leer el archivo de ajustes, avisa antes de abrir la configuracion
+        if (danado)
+            MessageBox.Show("No se pudo leer el archivo de configuración, se encontraba dañado.\nSe usarán los valores por defecto.",
+                "LiveSnip", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
         // La primera vez deja elegir el atajo (y guarda los valores por defecto para no volverlo a preguntar al usuario)
         if (primeraVez) {
@@ -58,7 +63,7 @@ class AppBandeja : ApplicationContext {
         bool ok = _atajo.Registrar(_config.Modificadores, (uint)_config.Tecla);
         _icono.Text = $"LiveSnip ({_config.Atajo})";
         if (!ok)
-            MessageBox.Show($"No se pudo registrar {_config.Atajo}, otra app ya lo usa.\nElija otro en Configuracion.",
+            MessageBox.Show($"No se pudo registrar {_config.Atajo}, otra app ya lo usa.\nElija otro en Configuración.",
                 "LiveSnip", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         return ok;
     }
@@ -68,7 +73,7 @@ class AppBandeja : ApplicationContext {
         menu.Items.Add("Capturar", null, (_, _) => Capturar());
 
         // Submenu de relaciones de aspecto
-        var aspecto = new ToolStripMenuItem("Relacion de aspecto");
+        var aspecto = new ToolStripMenuItem("Relación de aspecto");
         foreach (var relacion in RelacionAspecto.Todas) {
             var item = new ToolStripMenuItem(relacion.Nombre);
             item.Click += (_, _) => GuardarAspecto(relacion);
@@ -81,7 +86,7 @@ class AppBandeja : ApplicationContext {
         };
         menu.Items.Add(aspecto);
 
-        menu.Items.Add("Configuracion...", null, (_, _) => AbrirConfiguracion());
+        menu.Items.Add("Configuración...", null, (_, _) => AbrirConfiguracion());
         menu.Items.Add("Abrir carpeta", null, (_, _) => AbrirCarpeta());
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("Salir", null, (_, _) => Salir());

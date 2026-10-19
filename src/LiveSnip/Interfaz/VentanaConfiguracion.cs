@@ -16,7 +16,7 @@ class VentanaConfiguracion : Form {
         // Trabaja sobre una copia: si cancela, la config original no cambia
         Resultado = actual.Copiar();
 
-        Text = "LiveSnip - Configuracion";
+        Text = "LiveSnip - Configuración";
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
@@ -26,7 +26,7 @@ class VentanaConfiguracion : Form {
         TopMost = true;
 
         // Atajo: se captura pulsando la combinacion
-        Controls.Add(new Label { Text = "Atajo (haga clic y pulse la combinacion):", Left = 15, Top = 15, AutoSize = true });
+        Controls.Add(new Label { Text = "Atajo (haga clic y pulse la combinación):", Left = 15, Top = 15, AutoSize = true });
         _atajo.SetBounds(15, 38, 410, 25);
         _atajo.Text = Resultado.Atajo;
         _atajo.KeyDown += CapturarAtajo;
@@ -40,7 +40,7 @@ class VentanaConfiguracion : Form {
         Controls.Add(_aspecto);
 
         // Carpeta
-        Controls.Add(new Label { Text = "Carpeta de guardado (vacio = automatica):", Left = 15, Top = 138, AutoSize = true });
+        Controls.Add(new Label { Text = "Carpeta de guardado (vacío = automática):", Left = 15, Top = 138, AutoSize = true });
         _carpeta.SetBounds(15, 161, 320, 25);
         _carpeta.Text = Resultado.Carpeta;
         Controls.Add(_carpeta);

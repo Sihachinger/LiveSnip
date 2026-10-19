@@ -4,8 +4,7 @@ using System.Text.Json.Serialization;
 namespace LiveSnip.Nucleo;
 
 // Ajustes del usuario, guardado en %LOCALAPPDATA%\LiveSnip\config.json
-public class Config
-{
+public class Config {
     // Combinacion de Modificador + Tecla (Ctrl + Alt por defecto)
     public uint Modificadores { get; set; } = ModificadorTecla.Ctrl | ModificadorTecla.Alt;
     public int Tecla { get; set; } = (int)Keys.S;
@@ -20,22 +19,23 @@ public class Config
     [JsonIgnore] public string Atajo => Describir(Modificadores, (Keys)Tecla);
     [JsonIgnore] public RelacionAspecto Relacion => RelacionAspecto.Desde(Aspecto);
 
-    // Devuelve la config y si es la primera vez que se abre la app
-    public static (Config Config, bool PrimeraVez) Cargar() {
+    // Devuelve la config, si es la primera vez que se abre la app y si el archivo estaba danado
+    public static (Config Config, bool PrimeraVez, bool Danado) Cargar() {
         try {
             if (File.Exists(Ruta))
-                return (JsonSerializer.Deserialize<Config>(File.ReadAllText(Ruta)) ?? new Config(), false);
+                return (JsonSerializer.Deserialize<Config>(File.ReadAllText(Ruta)) ?? new Config(), false, false);
+        } catch {
+            // archivo danado: se usan los valores por defecto y se avisa
+            return (new Config(), true, true);
         }
-        catch { /* archivo danado: se usan los valores por defecto */ }
-        return (new Config(), true);
+        return (new Config(), true, false);
     }
 
     public void Guardar() {
         try {
             Directory.CreateDirectory(Path.GetDirectoryName(Ruta)!);
             File.WriteAllText(Ruta, JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true }));
-        }
-        catch { /* si no se puede guardar, sigue funcionando con lo actual */ }
+        } catch { /* si no se puede guardar, sigue funcionando con lo actual */ }
     }
 
     public Config Copiar() => (Config)MemberwiseClone();
