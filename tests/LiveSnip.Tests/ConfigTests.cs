@@ -18,6 +18,27 @@ public class ConfigTests {
     }
 
     [Fact]
+    public void PersonalizadaPorDefecto_Es21a9() {
+        var config = new Config();
+
+        Assert.Equal("21:9", config.Personalizada.Nombre);
+    }
+
+    [Fact]
+    public void Relacion_ConIndiceDeLaPersonalizada_DevuelveLaPersonalizada() {
+        var config = new Config { Aspecto = RelacionAspecto.IndicePersonalizada, AnchoPersonalizado = 5, AltoPersonalizado = 4 };
+
+        Assert.Equal("5:4", config.Relacion.Nombre);
+    }
+
+    [Fact]
+    public void Relacion_ConIndiceDeLaLista_DevuelveLaDeLaLista() {
+        var config = new Config { Aspecto = 3 };
+
+        Assert.Equal("16:9", config.Relacion.Nombre);
+    }
+
+    [Fact]
     public void Copiar_NoCambiaElOriginal() {
         var original = new Config { Carpeta = "A" };
 
