@@ -79,8 +79,14 @@ class AppBandeja : ApplicationContext {
             item.Click += (_, _) => GuardarAspecto(relacion);
             aspecto.DropDownItems.Add(item);
         }
-        // Marca la opcion activa cada vez que se abre el submenu
+        // La personalizada va al final y muestra los numeros que hay en la configuracion
+        var personalizada = new ToolStripMenuItem();
+        personalizada.Click += (_, _) => GuardarAspecto(_config.Personalizada);
+        aspecto.DropDownItems.Add(personalizada);
+
+        // Marca la opcion activa y actualiza el texto de la personalizada cada vez que se abre el submenu
         aspecto.DropDownOpening += (_, _) => {
+            personalizada.Text = $"Personalizada ({_config.Personalizada.Nombre})";
             for (int i = 0; i < aspecto.DropDownItems.Count; i++)
                 ((ToolStripMenuItem)aspecto.DropDownItems[i]).Checked = i == _config.Aspecto;
         };
@@ -145,7 +151,7 @@ class AppBandeja : ApplicationContext {
             // La seleccion se hace solo en el monitor donde esta el mouse
             var pantalla = Screen.FromPoint(Cursor.Position);
 
-            using var capa = new CapaSeleccion(pantalla, _config.Relacion);
+            using var capa = new CapaSeleccion(pantalla, _config.Relacion, _config.Personalizada);
             capa.ShowDialog();
 
             // Recuerda el aspecto elegido con el teclado

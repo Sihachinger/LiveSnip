@@ -11,9 +11,11 @@ class CapaSeleccion : Form {
     Point _inicio;          // donde se hizo clic para empezar a arrastrar
     Rectangle _seleccion;   // rectangulo actual, en coordenadas de la capa
     bool _arrastrando;      // true mientras el mouse esta presionado
+    readonly RelacionAspecto _personalizada;   // la que se elige con la tecla 6
 
-    public CapaSeleccion(Screen pantalla, RelacionAspecto relacion) {
+    public CapaSeleccion(Screen pantalla, RelacionAspecto relacion, RelacionAspecto personalizada) {
         Relacion = relacion;
+        _personalizada = personalizada;
 
         // Ventana sin bordes que cubre todo el monitor, siempre encima de lo demas
         FormBorderStyle = FormBorderStyle.None;
@@ -65,10 +67,10 @@ class CapaSeleccion : Form {
     protected override void OnKeyDown(KeyEventArgs e) {
         if (e.KeyCode == Keys.Escape) { Close(); return; }
 
-        // Teclas 0-5 cambian la relacion de aspecto
+        // Teclas 0-5 cambian la relacion de aspecto y la 6 usa la personalizada
         int i = e.KeyCode - Keys.D0;
-        if (i >= 0 && i < RelacionAspecto.Todas.Count) {
-            Relacion = RelacionAspecto.Todas[i];
+        if (i >= 0 && i <= RelacionAspecto.IndicePersonalizada) {
+            Relacion = i == RelacionAspecto.IndicePersonalizada ? _personalizada : RelacionAspecto.Todas[i];
             // Si ya esta arrastrando, aplica el nuevo aspecto al momento
             if (_arrastrando)
                 _seleccion = Relacion.Ajustar(_inicio, PointToClient(Cursor.Position), Size);
@@ -80,7 +82,7 @@ class CapaSeleccion : Form {
         var grafico = e.Graphics;
 
         // Mensaje arriba sobre el overlay
-        string ayuda = $"Arrastre para elegir  |  0 Libre | 1 1:1 | 2 4:3 | 3 16:9 | 4 9:16 | 5 3:2  |  Esc cancela  |  Aspecto: {Relacion.Nombre}";
+        string ayuda = $"Arrastre para elegir  |  0 Libre | 1 1:1 | 2 4:3 | 3 16:9 | 4 9:16 | 5 3:2 | 6 {_personalizada.Nombre}  |  Esc cancela  |  Aspecto: {Relacion.Nombre}";
         using var fuente = new Font("Segoe UI", 11);
         var tam = grafico.MeasureString(ayuda, fuente);
         grafico.DrawString(ayuda, fuente, Brushes.White, (Width - tam.Width) / 2, 20);

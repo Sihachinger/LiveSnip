@@ -8,6 +8,8 @@ class VentanaConfiguracion : Form {
 
     readonly TextBox _atajo = new() { ReadOnly = true, Cursor = Cursors.Hand };
     readonly ComboBox _aspecto = new() { DropDownStyle = ComboBoxStyle.DropDownList };
+    readonly NumericUpDown _ancho = new() { Minimum = RelacionAspecto.MinimoPersonalizado, Maximum = RelacionAspecto.MaximoPersonalizado };
+    readonly NumericUpDown _alto = new() { Minimum = RelacionAspecto.MinimoPersonalizado, Maximum = RelacionAspecto.MaximoPersonalizado };
     readonly TextBox _carpeta = new();
     readonly CheckBox _pedirNombre = new() { Text = "Preguntar el nombre al guardar cada captura" };
     readonly CheckBox _iniciar = new() { Text = "Iniciar con Windows" };
@@ -36,8 +38,21 @@ class VentanaConfiguracion : Form {
         Controls.Add(new Label { Text = "Aspecto por defecto:", Left = 15, Top = 78, AutoSize = true });
         _aspecto.SetBounds(15, 101, 150, 25);
         foreach (var r in RelacionAspecto.Todas) _aspecto.Items.Add(r.Nombre);
-        _aspecto.SelectedIndex = Resultado.Relacion.Indice;
+        _aspecto.Items.Add("Personalizada"); // ultima opcion: usa los dos numeros de al lado
+        _aspecto.SelectedIndex = Math.Clamp(Resultado.Aspecto, 0, RelacionAspecto.IndicePersonalizada);
+        _aspecto.SelectedIndexChanged += (_, _) => ActualizarPersonalizada();
         Controls.Add(_aspecto);
+
+        // Numeros de la relacion personalizada (ancho : alto), solo se usan si esta elegida
+        _ancho.SetBounds(180, 101, 55, 25);
+        // Clamp: un valor fuera de rango en config.json haria fallar la casilla
+        _ancho.Value = Math.Clamp(Resultado.AnchoPersonalizado, RelacionAspecto.MinimoPersonalizado, RelacionAspecto.MaximoPersonalizado);
+        Controls.Add(_ancho);
+        Controls.Add(new Label { Text = ":", Left = 240, Top = 104, AutoSize = true });
+        _alto.SetBounds(255, 101, 55, 25);
+        _alto.Value = Math.Clamp(Resultado.AltoPersonalizado, RelacionAspecto.MinimoPersonalizado, RelacionAspecto.MaximoPersonalizado);
+        Controls.Add(_alto);
+        ActualizarPersonalizada();
 
         // Carpeta
         Controls.Add(new Label { Text = "Carpeta de guardado (vacío = automática):", Left = 15, Top = 138, AutoSize = true });
@@ -66,6 +81,8 @@ class VentanaConfiguracion : Form {
         var cancelar = new Button { Text = "Cancelar", DialogResult = DialogResult.Cancel, Left = 345, Top = 264, Width = 80 };
         guardar.Click += (_, _) => {
             Resultado.Aspecto = _aspecto.SelectedIndex;
+            Resultado.AnchoPersonalizado = (int)_ancho.Value;
+            Resultado.AltoPersonalizado = (int)_alto.Value;
             Resultado.Carpeta = _carpeta.Text.Trim();
             Resultado.PedirNombre = _pedirNombre.Checked;
             Resultado.IniciarConWindows = _iniciar.Checked;
@@ -74,6 +91,13 @@ class VentanaConfiguracion : Form {
         Controls.Add(cancelar);
         AcceptButton = guardar;
         CancelButton = cancelar;
+    }
+
+    // Los numeros solo se pueden editar si esta elegida la personalizada
+    void ActualizarPersonalizada() {
+        bool personalizada = _aspecto.SelectedIndex == RelacionAspecto.IndicePersonalizada;
+        _ancho.Enabled = personalizada;
+        _alto.Enabled = personalizada;
     }
 
     // Lee la combinacion pulsada, exige al menos Ctrl, Alt o Shift para funcionar
