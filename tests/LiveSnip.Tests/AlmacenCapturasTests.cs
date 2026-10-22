@@ -30,4 +30,13 @@ public class AlmacenCapturasTests {
 
         Assert.Equal("sugerido", nombre);
     }
+
+    [Fact]
+    public void Configurar_ConRutaRelativa_LaDescartaYUsaUnaCompleta() {
+        var almacen = new AlmacenCapturas();
+
+        almacen.Configurar("LiveSnipRelativa");
+
+        Assert.True(Path.IsPathFullyQualified(almacen.Carpeta));
+    }
 }
