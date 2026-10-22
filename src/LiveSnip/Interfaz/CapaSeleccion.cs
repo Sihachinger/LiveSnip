@@ -56,6 +56,16 @@ class CapaSeleccion : Form {
         _rotulo.Colocar(opciones, Relacion.Indice, Bounds);
     }
 
+    // Oculta el cartel mientras la seleccion lo pisa y lo vuelve a mostrar cuando deja de pisarlo
+    void ActualizarRotulo() {
+        // El cartel esta en coordenadas de pantalla, asi que la seleccion tambien
+        var seleccionEnPantalla = new Rectangle(
+            _seleccion.X + Bounds.X, _seleccion.Y + Bounds.Y,
+            _seleccion.Width, _seleccion.Height);
+
+        bool pisa = seleccionEnPantalla.IntersectsWith(_rotulo.Bounds);
+        if (_rotulo.EstaOculto != pisa) _rotulo.Ocultar(pisa);
+    }
 
     protected override void OnMouseDown(MouseEventArgs e) {
         // Clic derecho cancela
@@ -63,12 +73,14 @@ class CapaSeleccion : Form {
         _inicio = e.Location;
         _seleccion = Rectangle.Empty;
         _arrastrando = true;
+        ActualizarRotulo();
     }
 
     protected override void OnMouseMove(MouseEventArgs e) {
         if (!_arrastrando) return;
         // Recalcula el rectangulo con la posicion del mouse y redibuja
         _seleccion = Relacion.Ajustar(_inicio, e.Location, Size);
+        ActualizarRotulo();
         Invalidate();
     }
 
@@ -99,6 +111,7 @@ class CapaSeleccion : Form {
 
             // El cartel resalta el aspecto elegido, asi que hay que rehacerlo
             ColocarRotulo();
+            ActualizarRotulo();
             Invalidate();
         }
     }
