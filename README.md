@@ -62,7 +62,7 @@ Clic derecho en el icono → **Configuración...** para cambiar:
 - **Atajo:** haga clic en el campo y pulse la combinación (debe incluir Ctrl, Alt o Shift).
 - **Aspecto por defecto.** Al elegir "Personalizada" se habilitan dos casillas para escribir el ancho y el alto como números enteros (de 1 a 32), por ejemplo 21 y 9. Esa relación es la que se usa con la tecla `6`.
 - **Carpeta de guardado.**
-- **Preguntar el nombre:** si se activa, tras cada captura aparece un cuadro para escribir el nombre (con o sin `.png`). Si se deja vacío o se cancela, se usa la fecha y hora. Si ya existe un archivo con ese nombre, se agrega `-2`, `-3`...
+- **Preguntar el nombre:** si se activa, tras cada captura aparece un cuadro para escribir el nombre (con o sin `.png`). Si se deja vacío, se usa la fecha y hora. Si se cancela, la captura no se guarda (queda solo en el portapapeles). Si ya existe un archivo con ese nombre, se agrega `-2`, `-3`...
 - **Iniciar con Windows:** arranca la app al iniciar sesión (usa la clave `Run` del usuario, no necesita administrador). Si se mueve el `.exe`, hay que abrirlo una vez para que se actualice la ruta.
 
 Se guarda en `%LOCALAPPDATA%\LiveSnip\config.json`.
