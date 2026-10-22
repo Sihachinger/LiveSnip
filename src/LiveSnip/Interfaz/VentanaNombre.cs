@@ -29,10 +29,10 @@ class VentanaNombre : Form {
         CancelButton = cancelar;
     }
 
-    // Pregunta el nombre, si se cancela o queda vacio devuelve el sugerido
-    public static string Pedir(string sugerido) {
+    // Pregunta el nombre, si queda vacio devuelve el sugerido y si se cancela devuelve null
+    public static string? Pedir(string sugerido) {
         using var dlg = new VentanaNombre(sugerido);
-        if (dlg.ShowDialog() != DialogResult.OK) return sugerido;
+        if (dlg.ShowDialog() != DialogResult.OK) return null;
         return AlmacenCapturas.LimpiarNombre(dlg._texto.Text, sugerido);
     }
 

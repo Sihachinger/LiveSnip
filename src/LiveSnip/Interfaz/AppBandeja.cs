@@ -167,7 +167,17 @@ class AppBandeja : ApplicationContext {
 
             // Nombre: fecha y hora, o el que escriba el usuario si lo activo en ajustes
             string nombre = _almacen.NombrePorDefecto();
-            if (_config.PedirNombre) nombre = VentanaNombre.Pedir(nombre);
+            if (_config.PedirNombre) {
+                var elegido = VentanaNombre.Pedir(nombre);
+
+                // Si cancela no se guarda el archivo, la imagen queda solo en el portapapeles
+                if (elegido is null) {
+                    _avisoDeGuardado = false;
+                    _icono.ShowBalloonTip(1500, "LiveSnip", "Copiada al portapapeles, no se guardó", ToolTipIcon.None);
+                    return;
+                }
+                nombre = elegido;
+            }
 
             _almacen.Guardar(imagen, nombre);
             _avisoDeGuardado = true;
