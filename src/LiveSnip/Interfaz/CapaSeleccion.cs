@@ -14,7 +14,7 @@ class CapaSeleccion : Form {
     readonly RelacionAspecto _personalizada;   // la que se elige con la tecla 6
     readonly RotuloAyuda _rotulo = new();      // cartel de ayuda de arriba, con su propio fondo
 
-    public CapaSeleccion(Screen pantalla, RelacionAspecto relacion, RelacionAspecto personalizada) {
+    public CapaSeleccion(Screen pantalla, RelacionAspecto relacion, RelacionAspecto personalizada, double opacidad) {
         Relacion = relacion;
         _personalizada = personalizada;
 
@@ -25,7 +25,7 @@ class CapaSeleccion : Form {
         TopMost = true;
         ShowInTaskbar = false;
         BackColor = Color.Black;
-        Opacity = 0.4; // se ve lo de abajo, pero oscurecido
+        Opacity = opacidad; // se ve lo de abajo, pero oscurecido segun la transparencia configurada
         Cursor = Cursors.Cross;
         DoubleBuffered = true; // evita el parpadeo al redibujar
         KeyPreview = true;

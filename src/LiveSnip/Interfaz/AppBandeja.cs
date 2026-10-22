@@ -151,7 +151,7 @@ class AppBandeja : ApplicationContext {
             // La seleccion se hace solo en el monitor donde esta el mouse
             var pantalla = Screen.FromPoint(Cursor.Position);
 
-            using var capa = new CapaSeleccion(pantalla, _config.Relacion, _config.Personalizada);
+            using var capa = new CapaSeleccion(pantalla, _config.Relacion, _config.Personalizada, _config.OpacidadCapa);
             capa.ShowDialog();
 
             // Recuerda el aspecto elegido con el teclado

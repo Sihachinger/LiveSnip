@@ -2,7 +2,7 @@ using LiveSnip.Nucleo;
 
 namespace LiveSnip.Interfaz;
 
-// Ventana de configuracion: atajo, aspecto por defecto, carpeta y nombre
+// Ventana de configuracion: atajo, aspecto por defecto, transparencia de la capa, carpeta y nombre
 class VentanaConfiguracion : Form {
     public Config Resultado { get; }
 
@@ -10,6 +10,11 @@ class VentanaConfiguracion : Form {
     readonly ComboBox _aspecto = new() { DropDownStyle = ComboBoxStyle.DropDownList };
     readonly NumericUpDown _ancho = new() { Minimum = RelacionAspecto.MinimoPersonalizado, Maximum = RelacionAspecto.MaximoPersonalizado };
     readonly NumericUpDown _alto = new() { Minimum = RelacionAspecto.MinimoPersonalizado, Maximum = RelacionAspecto.MaximoPersonalizado };
+    readonly TrackBar _transparencia = new() {
+        Minimum = Config.TransparenciaMinima, Maximum = Config.TransparenciaMaxima,
+        TickFrequency = 10, SmallChange = 1, LargeChange = 10
+    };
+    readonly Label _transparenciaValor = new() { AutoSize = false, TextAlign = ContentAlignment.MiddleLeft };
     readonly TextBox _carpeta = new();
     readonly CheckBox _pedirNombre = new() { Text = "Preguntar el nombre al guardar cada captura" };
     readonly CheckBox _iniciar = new() { Text = "Iniciar con Windows" };
@@ -23,7 +28,7 @@ class VentanaConfiguracion : Form {
         MaximizeBox = false;
         MinimizeBox = false;
         StartPosition = FormStartPosition.CenterScreen;
-        ClientSize = new Size(440, 305);
+        ClientSize = new Size(440, 365);
         Font = new Font("Segoe UI", 9);
         TopMost = true;
 
@@ -54,13 +59,23 @@ class VentanaConfiguracion : Form {
         Controls.Add(_alto);
         ActualizarPersonalizada();
 
+        // Transparencia de la capa: mas alto se ve mas lo de abajo
+        Controls.Add(new Label { Text = "Transparencia de la capa de selección:", Left = 15, Top = 138, AutoSize = true });
+        _transparencia.SetBounds(15, 158, 340, 40);
+        _transparencia.Value = Math.Clamp(Resultado.TransparenciaCapa, Config.TransparenciaMinima, Config.TransparenciaMaxima);
+        _transparencia.ValueChanged += (_, _) => ActualizarTransparencia();
+        Controls.Add(_transparencia);
+        _transparenciaValor.SetBounds(365, 163, 60, 20);
+        Controls.Add(_transparenciaValor);
+        ActualizarTransparencia();
+
         // Carpeta
-        Controls.Add(new Label { Text = "Carpeta de guardado (vacío = automática):", Left = 15, Top = 138, AutoSize = true });
-        _carpeta.SetBounds(15, 161, 320, 25);
+        Controls.Add(new Label { Text = "Carpeta de guardado (vacío = automática):", Left = 15, Top = 198, AutoSize = true });
+        _carpeta.SetBounds(15, 221, 320, 25);
         _carpeta.Text = Resultado.Carpeta;
         Controls.Add(_carpeta);
 
-        var elegir = new Button { Text = "Elegir...", Left = 343, Top = 160, Width = 82, Height = 27 };
+        var elegir = new Button { Text = "Elegir...", Left = 343, Top = 220, Width = 82, Height = 27 };
         elegir.Click += (_, _) => {
             using var dlg = new FolderBrowserDialog();
             if (dlg.ShowDialog() == DialogResult.OK) _carpeta.Text = dlg.SelectedPath;
@@ -68,21 +83,22 @@ class VentanaConfiguracion : Form {
         Controls.Add(elegir);
 
         // Nombre de archivo
-        _pedirNombre.SetBounds(15, 197, 410, 24);
+        _pedirNombre.SetBounds(15, 257, 410, 24);
         _pedirNombre.Checked = Resultado.PedirNombre;
         Controls.Add(_pedirNombre);
 
         // Arranque con Windows
-        _iniciar.SetBounds(15, 224, 410, 24);
+        _iniciar.SetBounds(15, 284, 410, 24);
         _iniciar.Checked = Resultado.IniciarConWindows;
         Controls.Add(_iniciar);
 
-        var guardar = new Button { Text = "Guardar", DialogResult = DialogResult.OK, Left = 255, Top = 264, Width = 85 };
-        var cancelar = new Button { Text = "Cancelar", DialogResult = DialogResult.Cancel, Left = 345, Top = 264, Width = 80 };
+        var guardar = new Button { Text = "Guardar", DialogResult = DialogResult.OK, Left = 255, Top = 324, Width = 85 };
+        var cancelar = new Button { Text = "Cancelar", DialogResult = DialogResult.Cancel, Left = 345, Top = 324, Width = 80 };
         guardar.Click += (_, _) => {
             Resultado.Aspecto = _aspecto.SelectedIndex;
             Resultado.AnchoPersonalizado = (int)_ancho.Value;
             Resultado.AltoPersonalizado = (int)_alto.Value;
+            Resultado.TransparenciaCapa = _transparencia.Value;
             Resultado.Carpeta = _carpeta.Text.Trim();
             Resultado.PedirNombre = _pedirNombre.Checked;
             Resultado.IniciarConWindows = _iniciar.Checked;
@@ -91,6 +107,11 @@ class VentanaConfiguracion : Form {
         Controls.Add(cancelar);
         AcceptButton = guardar;
         CancelButton = cancelar;
+    }
+
+    // Muestra el porcentaje elegido al lado del deslizador
+    void ActualizarTransparencia() {
+        _transparenciaValor.Text = $"{_transparencia.Value} %";
     }
 
     // Los numeros solo se pueden editar si esta elegida la personalizada
