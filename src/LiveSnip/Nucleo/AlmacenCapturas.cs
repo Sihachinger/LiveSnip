@@ -22,6 +22,10 @@ public sealed class AlmacenCapturas : IAlmacenCapturas {
         candidatas.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "LiveSnip", "Capturas"));
 
         foreach (var ruta in candidatas) {
+            // Si Windows devuelve vacia una carpeta especial queda una ruta relativa como "LiveSnip",
+            // que se crearia junto al .exe y no se puede abrir, asi que se descarta
+            if (!Path.IsPathFullyQualified(ruta)) continue;
+
             if (SePuedeEscribir(ruta)) {
                 Carpeta = ruta;
                 return;
