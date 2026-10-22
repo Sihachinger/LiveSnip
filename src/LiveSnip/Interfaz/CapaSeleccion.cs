@@ -12,6 +12,7 @@ class CapaSeleccion : Form {
     Rectangle _seleccion;   // rectangulo actual, en coordenadas de la capa
     bool _arrastrando;      // true mientras el mouse esta presionado
     readonly RelacionAspecto _personalizada;   // la que se elige con la tecla 6
+    readonly RotuloAyuda _rotulo = new();      // cartel de ayuda de arriba, con su propio fondo
 
     public CapaSeleccion(Screen pantalla, RelacionAspecto relacion, RelacionAspecto personalizada) {
         Relacion = relacion;
@@ -32,8 +33,29 @@ class CapaSeleccion : Form {
 
     protected override void OnShown(EventArgs e) {
         base.OnShown(e);
+
+        // El cartel se muestra sin activarse, asi el teclado sigue llegando a la capa
+        ColocarRotulo();
+        _rotulo.Show(this);
+
         Activate(); // para recibir el teclado
     }
+
+    protected override void Dispose(bool disposing) {
+        if (disposing) _rotulo.Dispose();
+        base.Dispose(disposing);
+    }
+
+    // Arma el cartel con una opcion por tecla (0 a 6) y resalta la que esta elegida
+    void ColocarRotulo() {
+        var opciones = new List<string>();
+        for (int i = 0; i < RelacionAspecto.Todas.Count; i++)
+            opciones.Add($"{i} {RelacionAspecto.Todas[i].Nombre}");
+        opciones.Add($"{RelacionAspecto.IndicePersonalizada} {_personalizada.Nombre}");
+
+        _rotulo.Colocar(opciones, Relacion.Indice, Bounds);
+    }
+
 
     protected override void OnMouseDown(MouseEventArgs e) {
         // Clic derecho cancela
@@ -74,6 +96,9 @@ class CapaSeleccion : Form {
             // Si ya esta arrastrando, aplica el nuevo aspecto al momento
             if (_arrastrando)
                 _seleccion = Relacion.Ajustar(_inicio, PointToClient(Cursor.Position), Size);
+
+            // El cartel resalta el aspecto elegido, asi que hay que rehacerlo
+            ColocarRotulo();
             Invalidate();
         }
     }
@@ -81,15 +106,10 @@ class CapaSeleccion : Form {
     protected override void OnPaint(PaintEventArgs e) {
         var grafico = e.Graphics;
 
-        // Mensaje arriba sobre el overlay
-        string ayuda = $"Arrastre para elegir  |  0 Libre | 1 1:1 | 2 4:3 | 3 16:9 | 4 9:16 | 5 3:2 | 6 {_personalizada.Nombre}  |  Esc cancela  |  Aspecto: {Relacion.Nombre}";
-        using var fuente = new Font("Segoe UI", 11);
-        var tam = grafico.MeasureString(ayuda, fuente);
-        grafico.DrawString(ayuda, fuente, Brushes.White, (Width - tam.Width) / 2, 20);
-
         // Si todavia no hay seleccion, no dibuja nada mas
         if (_seleccion.Width < 1) return;
 
+        using var fuente = new Font("Segoe UI", 11);
         using var lapiz = new Pen(Color.Lime, 3);
         grafico.DrawRectangle(lapiz, _seleccion);
         // Medidas en pixeles encima del rectangulo
