@@ -12,14 +12,22 @@ public class Config {
     public int Aspecto { get; set; } = 0;           // indice en RelacionAspecto.Todas (6 = personalizada)
     public int AnchoPersonalizado { get; set; } = 21;  // numeros de la relacion personalizada (21:9)
     public int AltoPersonalizado { get; set; } = 9;
+    public int TransparenciaCapa { get; set; } = 60;   // porcentaje, a mas alto se ve mas lo de abajo (60 = opacidad 0.4)
     public bool PedirNombre { get; set; } = false;  // pregunta el nombre al guardar
     public bool IniciarConWindows { get; set; } = false; // arrancar con Windows
+
+    // Limites de la transparencia de la capa, en porcentaje
+    public const int TransparenciaMinima = 0;
+    public const int TransparenciaMaxima = 90;
 
     static readonly string Ruta = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "LiveSnip", "config.json");
 
     [JsonIgnore] public string Atajo => Describir(Modificadores, (Keys)Tecla);
     [JsonIgnore] public RelacionAspecto Personalizada => RelacionAspecto.Personalizada(AnchoPersonalizado, AltoPersonalizado);
+    // Opacidad que se le pone a la capa (de 0.1 a 1), corrige cualquier valor fuera de rango del config.json
+    [JsonIgnore] public double OpacidadCapa =>
+        1.0 - Math.Clamp(TransparenciaCapa, TransparenciaMinima, TransparenciaMaxima) / 100.0;
     [JsonIgnore] public RelacionAspecto Relacion =>
         Aspecto == RelacionAspecto.IndicePersonalizada ? Personalizada : RelacionAspecto.Desde(Aspecto);
 
