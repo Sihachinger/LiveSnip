@@ -97,24 +97,11 @@ Las ventanas se construyen por código, sin el diseñador de Visual Studio. El p
 - Solo captura el monitor donde está el mouse al pulsar el atajo.
 - Solo Windows.
 
-## Sobre este Remaster
+## Acerca del historial
 
 LiveSnip lo he desarrollado originalmente a principios de 2026. Esta versión es una **reescritura realizada en 2026** a partir de la versión final de ese proyecto, aplicando criterios actuales de organización, nombres y estilo.
 
 El comienzo del historial de commits de este repositorio es una **reconstrucción**: ordene el trabajo en pasos lógicos a partir del código final. **No es el historial original**.
-
-## Cambios respecto al original
-
-- **Nombres en español en toda la solución.** Las clases y archivos de `Interfaz/` las habia desarrollado en inglés y ahora siguen el mismo idioma para uniformidad.
-- **Constantes con nombre para los modificadores de teclado.** Los valores `0x0001`, `0x0002` y `0x0004` aparecían repetidos como números sueltos, ahora están en `ModificadorTecla`.
-- **Comentarios:** se reescribieron y se agregaron algunos comentarios para explicar el flujo y hacer más claro el codigo.
-- **Pruebas:** se agregó el proyecto `tests/LiveSnip.Tests` (xUnit 2.9.3, Microsoft.NET.Test.Sdk 17.14.1, xunit.runner.visualstudio 3.1.4). Para experimentar con xUnit.
-- **Carpeta de capturas recreada si se borra.** Si se borra con la aplicación abierta, se vuelve a crear al guardar o al usar "Abrir carpeta" (antes el guardado fallaba), y si "Abrir carpeta" falla se muestra un aviso con el motivo.
-- **Función nueva:** al tocar el aviso "Copiada y guardada en…" se abre la carpeta de capturas.
-- **Función nueva: relación de aspecto personalizada.** El usuario puede escribir su propia relación (ancho y alto enteros) en la configuración, elegirla desde el menú del icono o con la tecla `6`. El original solo tenía las seis relaciones fijas.
-- **Aviso si el archivo de configuración está dañado.** Antes se usaban los valores por defecto sin decir nada, ahora se muestra un mensaje antes de abrir la configuración.
-
-Salvo lo indicado en los puntos de la carpeta recreada, las funciones nuevas y el aviso de configuración dañada, el comportamiento de la aplicación es el mismo que el del original.
 
 ## Licencia
 
