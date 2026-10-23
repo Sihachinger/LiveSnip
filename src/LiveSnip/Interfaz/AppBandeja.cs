@@ -11,6 +11,7 @@ class AppBandeja : ApplicationContext {
     readonly IInicioAutomatico _inicio;
     readonly NotifyIcon _icono;
     readonly VentanaAtajo _atajo;
+    const int IdAtajoCapturar = 1;   // numero con el que se registra el atajo de capturar
     Config _config;
 
     bool _capturando;        // evita abrir dos selecciones a la vez
@@ -44,7 +45,7 @@ class AppBandeja : ApplicationContext {
         _icono.DoubleClick += (_, _) => Capturar();
         _icono.BalloonTipClicked += (_, _) => { if (_avisoDeGuardado) AbrirCarpeta(); };
 
-        _atajo = new VentanaAtajo(Capturar);
+        _atajo = new VentanaAtajo(AlPresionarAtajo);
         AplicarAtajo();
 
         // Se crea el control en este hilo y se queda esperando la senal de otra copia
@@ -70,9 +71,14 @@ class AppBandeja : ApplicationContext {
         catch { return SystemIcons.Application; }
     }
 
+    // Windows avisa con el id del atajo que se pulso
+    void AlPresionarAtajo(int id) {
+        if (id == IdAtajoCapturar) Capturar();
+    }
+
     // Registra el atajo de la config, si esta ocupado avisa
     bool AplicarAtajo() {
-        bool ok = _atajo.Registrar(_config.Modificadores, (uint)_config.Tecla);
+        bool ok = _atajo.Registrar(IdAtajoCapturar, _config.Modificadores, (uint)_config.Tecla);
         _icono.Text = $"LiveSnip ({_config.Atajo})";
         if (!ok)
             MessageBox.Show($"No se pudo registrar {_config.Atajo}, otra app ya lo usa.\nElija otro en Configuración.",
