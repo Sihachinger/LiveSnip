@@ -19,6 +19,7 @@ Windows SmartScreen puede avisar porque el programa no está firmado, para utili
 3. Arrastre para elegir la zona. Al soltar, la captura se **copia al portapapeles** y se **guarda** en `Imágenes\LiveSnip`. Si no se puede escribir ahí (permisos, OneDrive, u otra razon), se prueba `Escritorio\Capturas LiveSnip` y luego `%LOCALAPPDATA%\LiveSnip\Capturas`. El menú del icono tiene "Abrir carpeta" para ir directamente al guardado.
 4. Para capturar de nuevo **la misma zona** sin volver a arrastrar, pulse **Ctrl + Alt + R** o elija "Repetir última captura" en el menú del icono. La zona se recuerda mientras la aplicación esté abierta.
 5. Si se abre LiveSnip cuando ya está abierto, se muestra la ventana de configuración de la copia que ya está en ejecución.
+6. Para abrir la captura más reciente, elija "Abrir última captura" en el menú del icono. Se abre en el visor de imágenes de Windows.
 
 | Tecla | Acción |
 |---|---|
@@ -65,8 +66,10 @@ Clic derecho en el icono → **Configuración...** para cambiar:
 - **Atajo para repetir la última captura:** se elige igual que el anterior (por defecto Ctrl + Alt + R). No puede ser igual al atajo principal.
 - **Aspecto por defecto.** Al elegir "Personalizada" se habilitan dos casillas para escribir el ancho y el alto como números enteros (de 1 a 32), por ejemplo 21 y 9. Esa relación es la que se usa con la tecla `6`.
 - **Oscuridad de la capa de selección:** deslizador de 0 a 90 % (por defecto 40 %). Cuanto más alto, más oscuro el fondo negro que aparece al capturar, y con 90 % queda casi negro. El marco verde y las medidas no se ven afectados.
+- **Cada captura se:** elige a dónde va cada captura, "Copia y se guarda" (por defecto), "Solo se copia" o "Solo se guarda". Con "Solo se copia" no se pregunta el nombre ni se escribe nada en el disco, y con "Solo se guarda" no se toca el portapapeles.
 - **Carpeta de guardado.**
 - **Preguntar el nombre:** si se activa, tras cada captura aparece un cuadro para escribir el nombre (con o sin `.png`). Si se deja vacío, se usa la fecha y hora. Si se cancela, la captura no se guarda (queda solo en el portapapeles). Si ya existe un archivo con ese nombre, se agrega `-2`, `-3`...
+- **Mostrar un aviso al terminar cada captura:** muestra el mensaje "Copiada y guardada en…". Si se apaga, solo se silencia ese aviso de éxito, los errores y los demás avisos (por ejemplo, que no se guardó al cancelar el nombre) se siguen mostrando.
 - **Iniciar con Windows:** arranca la app al iniciar sesión (usa la clave `Run` del usuario, no necesita administrador). Si se mueve el `.exe`, hay que abrirlo una vez para que se actualice la ruta.
 
 Se guarda en `%LOCALAPPDATA%\LiveSnip\config.json`.
