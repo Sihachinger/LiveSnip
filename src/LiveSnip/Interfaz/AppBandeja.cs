@@ -16,11 +16,18 @@ class AppBandeja : ApplicationContext {
     bool _capturando;        // evita abrir dos selecciones a la vez
     bool _avisoDeGuardado;   // true si el ultimo aviso fue "Copiada y guardada" (seria el unico que abre la carpeta al tocarlo)
     bool _configAbierta;     // evita abrir dos ventanas de configuracion
+    VentanaConfiguracion? _ventanaConfiguracion;   // la que esta abierta ahora, para traerla al frente
 
-    public AppBandeja(ICapturadorPantalla capturador, IAlmacenCapturas almacen, IInicioAutomatico inicio) {
+    // Cuando se abre otra copia de la app, esta senal le pide a esta que muestre la configuracion
+    readonly EventWaitHandle _pedidoDeConfiguracion;
+    RegisteredWaitHandle? _espera;
+    readonly Control _enlaceConLaInterfaz = new();   // permite volver al hilo de la interfaz desde el hilo que espera la senal
+
+    public AppBandeja(ICapturadorPantalla capturador, IAlmacenCapturas almacen, IInicioAutomatico inicio, EventWaitHandle pedidoDeConfiguracion) {
         _capturador = capturador;
         _almacen = almacen;
         _inicio = inicio;
+        _pedidoDeConfiguracion = pedidoDeConfiguracion;
 
         var (config, primeraVez, danado) = Config.Cargar();
         _config = config;
@@ -39,6 +46,11 @@ class AppBandeja : ApplicationContext {
 
         _atajo = new VentanaAtajo(Capturar);
         AplicarAtajo();
+
+        // Se crea el control en este hilo y se queda esperando la senal de otra copia
+        _ = _enlaceConLaInterfaz.Handle;
+        _espera = ThreadPool.RegisterWaitForSingleObject(
+            _pedidoDeConfiguracion, (_, _) => AlRecibirPedido(), null, Timeout.Infinite, false);
 
         // Si no se pudo leer el archivo de ajustes, avisa antes de abrir la configuracion
         if (danado)
@@ -116,6 +128,29 @@ class AppBandeja : ApplicationContext {
         _config.Guardar();
     }
 
+    // Esto corre en otro hilo, asi que vuelve al hilo de la interfaz antes de abrir nada
+    void AlRecibirPedido() {
+        try {
+            _enlaceConLaInterfaz.BeginInvoke((Action)MostrarConfiguracion);
+        } catch (ObjectDisposedException) {
+            // la app se esta cerrando
+        } catch (InvalidOperationException) {
+            // la interfaz ya no esta disponible
+        }
+    }
+
+    // La pide la otra copia de la app: abre la configuracion, o la trae al frente si ya estaba abierta
+    void MostrarConfiguracion() {
+        // No se interrumpe una captura en curso
+        if (_capturando) return;
+
+        if (_configAbierta) {
+            _ventanaConfiguracion?.Activate();
+            return;
+        }
+        AbrirConfiguracion();
+    }
+
     void AbrirConfiguracion() {
         if (_configAbierta) return;
         _configAbierta = true;
@@ -124,6 +159,7 @@ class AppBandeja : ApplicationContext {
             _config.IniciarConWindows = _inicio.Activo;
 
             using var ventana = new VentanaConfiguracion(_config);
+            _ventanaConfiguracion = ventana;
             if (ventana.ShowDialog() != DialogResult.OK) return;
 
             var anterior = _config;
@@ -140,6 +176,7 @@ class AppBandeja : ApplicationContext {
             _inicio.Establecer(_config.IniciarConWindows);
             _config.Guardar();
         } finally {
+            _ventanaConfiguracion = null;
             _configAbierta = false;
         }
     }
@@ -191,6 +228,8 @@ class AppBandeja : ApplicationContext {
     }
 
     void Salir() {
+        _espera?.Unregister(null);
+        _enlaceConLaInterfaz.Dispose();
         _atajo.Dispose();
         _icono.Visible = false;
         _icono.Dispose();
