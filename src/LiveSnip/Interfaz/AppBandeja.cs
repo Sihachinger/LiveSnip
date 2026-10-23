@@ -12,9 +12,11 @@ class AppBandeja : ApplicationContext {
     readonly NotifyIcon _icono;
     readonly VentanaAtajo _atajo;
     const int IdAtajoCapturar = 1;   // numero con el que se registra el atajo de capturar
+    const int IdAtajoRepetir = 2;    // numero con el que se registra el atajo de repetir la captura
     Config _config;
 
     bool _capturando;        // evita abrir dos selecciones a la vez
+    Rectangle? _ultimaZona;  // zona de la ultima captura en coordenadas de pantalla, se pierde al cerrar la app
     bool _avisoDeGuardado;   // true si el ultimo aviso fue "Copiada y guardada" (seria el unico que abre la carpeta al tocarlo)
     bool _configAbierta;     // evita abrir dos ventanas de configuracion
     VentanaConfiguracion? _ventanaConfiguracion;   // la que esta abierta ahora, para traerla al frente
@@ -47,6 +49,7 @@ class AppBandeja : ApplicationContext {
 
         _atajo = new VentanaAtajo(AlPresionarAtajo);
         AplicarAtajo();
+        AplicarAtajoRepetir();
 
         // Se crea el control en este hilo y se queda esperando la senal de otra copia
         _ = _enlaceConLaInterfaz.Handle;
@@ -74,6 +77,7 @@ class AppBandeja : ApplicationContext {
     // Windows avisa con el id del atajo que se pulso
     void AlPresionarAtajo(int id) {
         if (id == IdAtajoCapturar) Capturar();
+        else if (id == IdAtajoRepetir) RepetirCaptura(esperarAntes: false);
     }
 
     // Registra el atajo de la config, si esta ocupado avisa
@@ -86,9 +90,19 @@ class AppBandeja : ApplicationContext {
         return ok;
     }
 
+    // Registra el atajo para repetir la captura, si esta ocupado avisa
+    bool AplicarAtajoRepetir() {
+        bool ok = _atajo.Registrar(IdAtajoRepetir, _config.ModificadoresRepetir, (uint)_config.TeclaRepetir);
+        if (!ok)
+            MessageBox.Show($"No se pudo registrar {_config.AtajoRepetir}, otra app ya lo usa.\nElija otro en Configuración.",
+                "LiveSnip", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        return ok;
+    }
+
     ContextMenuStrip CrearMenu() {
         var menu = new ContextMenuStrip();
         menu.Items.Add("Capturar", null, (_, _) => Capturar());
+        menu.Items.Add("Repetir última captura", null, (_, _) => RepetirCaptura(esperarAntes: true));
 
         // Submenu de relaciones de aspecto
         var aspecto = new ToolStripMenuItem("Relación de aspecto");
@@ -178,6 +192,13 @@ class AppBandeja : ApplicationContext {
                 AplicarAtajo();
             }
 
+            // Lo mismo para el atajo de repetir la captura
+            if (!AplicarAtajoRepetir()) {
+                _config.ModificadoresRepetir = anterior.ModificadoresRepetir;
+                _config.TeclaRepetir = anterior.TeclaRepetir;
+                AplicarAtajoRepetir();
+            }
+
             _almacen.Configurar(_config.Carpeta);
             _inicio.Establecer(_config.IniciarConWindows);
             _config.Guardar();
@@ -205,6 +226,7 @@ class AppBandeja : ApplicationContext {
             // Pequena pausa para que la capa desaparezca antes de capturar
             Thread.Sleep(120);
 
+            _ultimaZona = zona;
             CapturarZona(zona);
         } catch (Exception ex) {
             _avisoDeGuardado = false;
@@ -212,6 +234,40 @@ class AppBandeja : ApplicationContext {
         } finally {
             _capturando = false;
         }
+    }
+
+    // Captura otra vez la misma zona de la ultima captura, sin mostrar la capa
+    // Desde el menu hay que esperar un momento para que el menu termine de cerrarse y no salga en la imagen
+    void RepetirCaptura(bool esperarAntes) {
+        if (_capturando) return;
+
+        if (_ultimaZona is not Rectangle zona) {
+            AvisarSinCaptura("Todavía no hay una captura anterior para repetir");
+            return;
+        }
+
+        // La pantalla pudo cambiar desde la captura anterior (resolucion, monitores)
+        if (!Screen.AllScreens.Any(pantalla => pantalla.Bounds.Contains(zona))) {
+            AvisarSinCaptura("La zona de la captura anterior ya no entra en ninguna pantalla");
+            return;
+        }
+
+        _capturando = true;
+        try {
+            if (esperarAntes) Thread.Sleep(200);
+            CapturarZona(zona);
+        } catch (Exception ex) {
+            _avisoDeGuardado = false;
+            _icono.ShowBalloonTip(3000, "LiveSnip", "Error: " + ex.Message, ToolTipIcon.Error);
+        } finally {
+            _capturando = false;
+        }
+    }
+
+    // Aviso corto cuando no se pudo repetir, tocarlo no abre la carpeta
+    void AvisarSinCaptura(string mensaje) {
+        _avisoDeGuardado = false;
+        _icono.ShowBalloonTip(2500, "LiveSnip", mensaje, ToolTipIcon.None);
     }
 
     // Saca la imagen de una zona de la pantalla, la copia al portapapeles y la guarda
