@@ -17,6 +17,8 @@ Windows SmartScreen puede avisar porque el programa no está firmado, para utili
 1. Ejecute `LiveSnip.exe`. La primera vez se abre la configuración para elegir el atajo, después queda ya en la bandeja del sistema.
 2. Pulse el atajo (por defecto **Ctrl + Alt + S**) o haga doble clic en el icono. La capa aparece en el monitor donde está el mouse unicamente.
 3. Arrastre para elegir la zona. Al soltar, la captura se **copia al portapapeles** y se **guarda** en `Imágenes\LiveSnip`. Si no se puede escribir ahí (permisos, OneDrive, u otra razon), se prueba `Escritorio\Capturas LiveSnip` y luego `%LOCALAPPDATA%\LiveSnip\Capturas`. El menú del icono tiene "Abrir carpeta" para ir directamente al guardado.
+4. Para capturar de nuevo **la misma zona** sin volver a arrastrar, pulse **Ctrl + Alt + R** o elija "Repetir última captura" en el menú del icono. La zona se recuerda mientras la aplicación esté abierta.
+5. Si se abre LiveSnip cuando ya está abierto, se muestra la ventana de configuración de la copia que ya está en ejecución.
 
 | Tecla | Acción |
 |---|---|
@@ -60,7 +62,9 @@ Las pruebas (xUnit) cubren la lógica sin ventanas, el cálculo de relaciones de
 Clic derecho en el icono → **Configuración...** para cambiar:
 
 - **Atajo:** haga clic en el campo y pulse la combinación (debe incluir Ctrl, Alt o Shift).
+- **Atajo para repetir la última captura:** se elige igual que el anterior (por defecto Ctrl + Alt + R). No puede ser igual al atajo principal.
 - **Aspecto por defecto.** Al elegir "Personalizada" se habilitan dos casillas para escribir el ancho y el alto como números enteros (de 1 a 32), por ejemplo 21 y 9. Esa relación es la que se usa con la tecla `6`.
+- **Transparencia de la capa:** deslizador de 0 a 90 % (por defecto 60 %). Cuanto más alto, más se ve lo que hay debajo. Con 0 % la capa es completamente negra.
 - **Carpeta de guardado.**
 - **Preguntar el nombre:** si se activa, tras cada captura aparece un cuadro para escribir el nombre (con o sin `.png`). Si se deja vacío, se usa la fecha y hora. Si se cancela, la captura no se guarda (queda solo en el portapapeles). Si ya existe un archivo con ese nombre, se agrega `-2`, `-3`...
 - **Iniciar con Windows:** arranca la app al iniciar sesión (usa la clave `Run` del usuario, no necesita administrador). Si se mueve el `.exe`, hay que abrirlo una vez para que se actualice la ruta.
@@ -80,11 +84,11 @@ src/LiveSnip/
 │   ├── CapturadorPantalla.cs  ICapturadorPantalla: saca la imagen de una zona
 │   └── AlmacenCapturas.cs     IAlmacenCapturas: carpeta, nombre y guardado del PNG
 └── Interfaz/                  Ventanas y bandeja
-    ├── AppBandeja.cs          Coordina menú, atajo y flujo de captura
+    ├── AppBandeja.cs          Coordina menú, atajos y flujo de captura
     ├── CapaSeleccion.cs       Capa para elegir la zona
     ├── VentanaConfiguracion.cs  Ventana de configuración
     ├── VentanaNombre.cs       Cuadro para el nombre
-    └── VentanaAtajo.cs        Atajo global
+    └── VentanaAtajo.cs        Atajos globales
 tests/LiveSnip.Tests/          Pruebas de la lógica
 ```
 
