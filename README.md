@@ -64,7 +64,7 @@ Clic derecho en el icono → **Configuración...** para cambiar:
 - **Atajo:** haga clic en el campo y pulse la combinación (debe incluir Ctrl, Alt o Shift).
 - **Atajo para repetir la última captura:** se elige igual que el anterior (por defecto Ctrl + Alt + R). No puede ser igual al atajo principal.
 - **Aspecto por defecto.** Al elegir "Personalizada" se habilitan dos casillas para escribir el ancho y el alto como números enteros (de 1 a 32), por ejemplo 21 y 9. Esa relación es la que se usa con la tecla `6`.
-- **Transparencia de la capa:** deslizador de 0 a 90 % (por defecto 60 %). Cuanto más alto, más se ve lo que hay debajo. Con 0 % la capa es completamente negra.
+- **Oscuridad de la capa de selección:** deslizador de 0 a 90 % (por defecto 40 %). Cuanto más alto, más oscuro el fondo negro que aparece al capturar, y con 90 % queda casi negro. El marco verde y las medidas no se ven afectados.
 - **Carpeta de guardado.**
 - **Preguntar el nombre:** si se activa, tras cada captura aparece un cuadro para escribir el nombre (con o sin `.png`). Si se deja vacío, se usa la fecha y hora. Si se cancela, la captura no se guarda (queda solo en el portapapeles). Si ya existe un archivo con ese nombre, se agrega `-2`, `-3`...
 - **Iniciar con Windows:** arranca la app al iniciar sesión (usa la clave `Run` del usuario, no necesita administrador). Si se mueve el `.exe`, hay que abrirlo una vez para que se actualice la ruta.
