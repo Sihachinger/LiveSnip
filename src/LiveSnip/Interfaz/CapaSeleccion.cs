@@ -13,6 +13,7 @@ class CapaSeleccion : Form {
     bool _arrastrando;      // true mientras el mouse esta presionado
     readonly RelacionAspecto _personalizada;   // la que se elige con la tecla 6
     readonly RotuloAyuda _rotulo = new();      // cartel de ayuda de arriba, con su propio fondo
+    readonly MarcoSeleccion _marco = new();    // marco verde y medidas, en otra ventana para que la oscuridad no los afecte
 
     public CapaSeleccion(Screen pantalla, RelacionAspecto relacion, RelacionAspecto personalizada, double opacidad) {
         Relacion = relacion;
@@ -25,16 +26,17 @@ class CapaSeleccion : Form {
         TopMost = true;
         ShowInTaskbar = false;
         BackColor = Color.Black;
-        Opacity = opacidad; // se ve lo de abajo, pero oscurecido segun la transparencia configurada
+        Opacity = opacidad; // se ve lo de abajo, mas o menos oscurecido segun lo configurado
         Cursor = Cursors.Cross;
-        DoubleBuffered = true; // evita el parpadeo al redibujar
         KeyPreview = true;
     }
 
     protected override void OnShown(EventArgs e) {
         base.OnShown(e);
 
-        // El cartel se muestra sin activarse, asi el teclado sigue llegando a la capa
+        // El marco y el cartel se muestran sin activarse, asi el teclado sigue llegando a la capa
+        _marco.Bounds = Bounds;
+        _marco.Show(this);
         ColocarRotulo();
         _rotulo.Show(this);
 
@@ -42,7 +44,10 @@ class CapaSeleccion : Form {
     }
 
     protected override void Dispose(bool disposing) {
-        if (disposing) _rotulo.Dispose();
+        if (disposing) {
+            _rotulo.Dispose();
+            _marco.Dispose();
+        }
         base.Dispose(disposing);
     }
 
@@ -72,16 +77,17 @@ class CapaSeleccion : Form {
         if (e.Button == MouseButtons.Right) { Close(); return; }
         _inicio = e.Location;
         _seleccion = Rectangle.Empty;
+        _marco.Mostrar(_seleccion);
         _arrastrando = true;
         ActualizarRotulo();
     }
 
     protected override void OnMouseMove(MouseEventArgs e) {
         if (!_arrastrando) return;
-        // Recalcula el rectangulo con la posicion del mouse y redibuja
+        // Recalcula el rectangulo con la posicion del mouse y lo redibuja en el marco
         _seleccion = Relacion.Ajustar(_inicio, e.Location, Size);
+        _marco.Mostrar(_seleccion);
         ActualizarRotulo();
-        Invalidate();
     }
 
     protected override void OnMouseUp(MouseEventArgs e) {
@@ -89,7 +95,7 @@ class CapaSeleccion : Form {
         _arrastrando = false;
 
         // Ignora los clics sueltos
-        if (_seleccion.Width < 5 || _seleccion.Height < 5) { Invalidate(); return; }
+        if (_seleccion.Width < 5 || _seleccion.Height < 5) return;
 
         // Pasa a coordenadas de pantalla sumando donde empieza el monitor
         Resultado = new Rectangle(
@@ -109,24 +115,12 @@ class CapaSeleccion : Form {
             if (_arrastrando)
                 _seleccion = Relacion.Ajustar(_inicio, PointToClient(Cursor.Position), Size);
 
+            // El marco se redibuja con el nuevo aspecto
+            _marco.Mostrar(_seleccion);
+
             // El cartel resalta el aspecto elegido, asi que hay que rehacerlo
             ColocarRotulo();
             ActualizarRotulo();
-            Invalidate();
         }
-    }
-
-    protected override void OnPaint(PaintEventArgs e) {
-        var grafico = e.Graphics;
-
-        // Si todavia no hay seleccion, no dibuja nada mas
-        if (_seleccion.Width < 1) return;
-
-        using var fuente = new Font("Segoe UI", 11);
-        using var lapiz = new Pen(Color.Lime, 3);
-        grafico.DrawRectangle(lapiz, _seleccion);
-        // Medidas en pixeles encima del rectangulo
-        grafico.DrawString($"{_seleccion.Width} x {_seleccion.Height}", fuente, Brushes.Lime,
-            _seleccion.X, Math.Max(0, _seleccion.Y - 24));
     }
 }
