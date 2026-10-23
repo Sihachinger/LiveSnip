@@ -46,27 +46,27 @@ public class ConfigTests {
     }
 
     [Fact]
-    public void TransparenciaPorDefecto_DejaLaOpacidadDeSiempre() {
+    public void OscuridadPorDefecto_DejaLaOpacidadDeSiempre() {
         var config = new Config();
 
-        // 60 % de transparencia es la opacidad 0.4 que tenia la capa antes del ajuste
+        // 40 % de oscuridad es la opacidad 0.4 que tenia la capa antes del ajuste
         Assert.Equal(0.4, config.OpacidadCapa, 5);
     }
 
     [Fact]
-    public void Transparencia_ConUnValorMuyAlto_SeCorrigeAlMaximo() {
-        var config = new Config { TransparenciaCapa = 200 };
+    public void Oscuridad_ConUnValorMuyAlto_SeCorrigeAlMaximo() {
+        var config = new Config { OscuridadCapa = 200 };
 
-        // El maximo es 90 %, o sea opacidad 0.1
-        Assert.Equal(0.1, config.OpacidadCapa, 5);
+        // El maximo es 90 %, o sea casi negro
+        Assert.Equal(0.9, config.OpacidadCapa, 5);
     }
 
     [Fact]
-    public void Transparencia_ConUnValorNegativo_SeCorrigeAlMinimo() {
-        var config = new Config { TransparenciaCapa = -5 };
+    public void Oscuridad_ConUnValorNegativo_SeCorrigeAlMinimo() {
+        var config = new Config { OscuridadCapa = -5 };
 
-        // El minimo es 0 %, o sea opacidad 1 (capa negra del todo)
-        Assert.Equal(1.0, config.OpacidadCapa, 5);
+        // El minimo es 0 %, que se queda en 0.01 para que la capa siga recibiendo el mouse
+        Assert.Equal(0.01, config.OpacidadCapa, 5);
     }
 
     [Fact]

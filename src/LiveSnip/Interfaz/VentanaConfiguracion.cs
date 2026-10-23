@@ -2,7 +2,7 @@ using LiveSnip.Nucleo;
 
 namespace LiveSnip.Interfaz;
 
-// Ventana de configuracion: atajos, aspecto por defecto, transparencia de la capa, carpeta y nombre
+// Ventana de configuracion: atajos, aspecto por defecto, oscuridad de la capa, carpeta y nombre
 class VentanaConfiguracion : Form {
     public Config Resultado { get; }
 
@@ -11,11 +11,11 @@ class VentanaConfiguracion : Form {
     readonly ComboBox _aspecto = new() { DropDownStyle = ComboBoxStyle.DropDownList };
     readonly NumericUpDown _ancho = new() { Minimum = RelacionAspecto.MinimoPersonalizado, Maximum = RelacionAspecto.MaximoPersonalizado };
     readonly NumericUpDown _alto = new() { Minimum = RelacionAspecto.MinimoPersonalizado, Maximum = RelacionAspecto.MaximoPersonalizado };
-    readonly TrackBar _transparencia = new() {
-        Minimum = Config.TransparenciaMinima, Maximum = Config.TransparenciaMaxima,
+    readonly TrackBar _oscuridad = new() {
+        Minimum = Config.OscuridadMinima, Maximum = Config.OscuridadMaxima,
         TickFrequency = 10, SmallChange = 1, LargeChange = 10
     };
-    readonly Label _transparenciaValor = new() { AutoSize = false, TextAlign = ContentAlignment.MiddleLeft };
+    readonly Label _oscuridadValor = new() { AutoSize = false, TextAlign = ContentAlignment.MiddleLeft };
     readonly TextBox _carpeta = new();
     readonly CheckBox _pedirNombre = new() { Text = "Preguntar el nombre al guardar cada captura" };
     readonly CheckBox _iniciar = new() { Text = "Iniciar con Windows" };
@@ -67,15 +67,15 @@ class VentanaConfiguracion : Form {
         Controls.Add(_alto);
         ActualizarPersonalizada();
 
-        // Transparencia de la capa: mas alto se ve mas lo de abajo
-        Controls.Add(new Label { Text = "Transparencia de la capa de selección:", Left = 15, Top = 201, AutoSize = true });
-        _transparencia.SetBounds(15, 221, 340, 40);
-        _transparencia.Value = Math.Clamp(Resultado.TransparenciaCapa, Config.TransparenciaMinima, Config.TransparenciaMaxima);
-        _transparencia.ValueChanged += (_, _) => ActualizarTransparencia();
-        Controls.Add(_transparencia);
-        _transparenciaValor.SetBounds(365, 226, 60, 20);
-        Controls.Add(_transparenciaValor);
-        ActualizarTransparencia();
+        // Oscuridad del fondo negro de la capa: mas alto, mas oscuro
+        Controls.Add(new Label { Text = "Oscuridad de la capa de selección:", Left = 15, Top = 201, AutoSize = true });
+        _oscuridad.SetBounds(15, 221, 340, 40);
+        _oscuridad.Value = Math.Clamp(Resultado.OscuridadCapa, Config.OscuridadMinima, Config.OscuridadMaxima);
+        _oscuridad.ValueChanged += (_, _) => ActualizarOscuridad();
+        Controls.Add(_oscuridad);
+        _oscuridadValor.SetBounds(365, 226, 60, 20);
+        Controls.Add(_oscuridadValor);
+        ActualizarOscuridad();
 
         // Carpeta
         Controls.Add(new Label { Text = "Carpeta de guardado (vacío = automática):", Left = 15, Top = 261, AutoSize = true });
@@ -106,7 +106,7 @@ class VentanaConfiguracion : Form {
             Resultado.Aspecto = _aspecto.SelectedIndex;
             Resultado.AnchoPersonalizado = (int)_ancho.Value;
             Resultado.AltoPersonalizado = (int)_alto.Value;
-            Resultado.TransparenciaCapa = _transparencia.Value;
+            Resultado.OscuridadCapa = _oscuridad.Value;
             Resultado.Carpeta = _carpeta.Text.Trim();
             Resultado.PedirNombre = _pedirNombre.Checked;
             Resultado.IniciarConWindows = _iniciar.Checked;
@@ -118,8 +118,8 @@ class VentanaConfiguracion : Form {
     }
 
     // Muestra el porcentaje elegido al lado del deslizador
-    void ActualizarTransparencia() {
-        _transparenciaValor.Text = $"{_transparencia.Value} %";
+    void ActualizarOscuridad() {
+        _oscuridadValor.Text = $"{_oscuridad.Value} %";
     }
 
     // Los numeros solo se pueden editar si esta elegida la personalizada
