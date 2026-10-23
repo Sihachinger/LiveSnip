@@ -18,6 +18,8 @@ public class Config {
     public int AnchoPersonalizado { get; set; } = 21;  // numeros de la relacion personalizada (21:9)
     public int AltoPersonalizado { get; set; } = 9;
     public int OscuridadCapa { get; set; } = 40;   // porcentaje, a mas alto mas oscuro el fondo negro (40 = opacidad 0.4)
+    public DestinoCaptura Destino { get; set; } = DestinoCaptura.CopiarYGuardar;   // a donde va cada captura
+    public bool MostrarAviso { get; set; } = true;  // muestra el globo "Copiada y guardada en..."
     public bool PedirNombre { get; set; } = false;  // pregunta el nombre al guardar
     public bool IniciarConWindows { get; set; } = false; // arrancar con Windows
 
@@ -30,6 +32,9 @@ public class Config {
 
     [JsonIgnore] public string Atajo => Describir(Modificadores, (Keys)Tecla);
     [JsonIgnore] public string AtajoRepetir => Describir(ModificadoresRepetir, (Keys)TeclaRepetir);
+    // Si el config.json trae un numero que no existe, se comporta como copiar y guardar
+    [JsonIgnore] public bool CopiaAlPortapapeles => Destino != DestinoCaptura.SoloGuardar;
+    [JsonIgnore] public bool GuardaEnArchivo => Destino != DestinoCaptura.SoloCopiar;
     [JsonIgnore] public RelacionAspecto Personalizada => RelacionAspecto.Personalizada(AnchoPersonalizado, AltoPersonalizado);
     // Con opacidad 0 Windows deja pasar el mouse a lo que hay debajo y no se podria seleccionar,
     // asi que se deja un minimo que no se nota pero que sigue recibiendo el mouse
