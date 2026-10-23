@@ -70,6 +70,49 @@ public class ConfigTests {
     }
 
     [Fact]
+    public void AvisoPorDefecto_EstaActivado() {
+        var config = new Config();
+
+        Assert.True(config.MostrarAviso);
+    }
+
+    [Fact]
+    public void DestinoPorDefecto_CopiaAlPortapapeles() {
+        var config = new Config();
+
+        Assert.True(config.CopiaAlPortapapeles);
+    }
+
+    [Fact]
+    public void DestinoPorDefecto_GuardaEnArchivo() {
+        var config = new Config();
+
+        Assert.True(config.GuardaEnArchivo);
+    }
+
+    [Fact]
+    public void SoloCopiar_NoGuardaEnArchivo() {
+        var config = new Config { Destino = DestinoCaptura.SoloCopiar };
+
+        Assert.False(config.GuardaEnArchivo);
+    }
+
+    [Fact]
+    public void SoloGuardar_NoCopiaAlPortapapeles() {
+        var config = new Config { Destino = DestinoCaptura.SoloGuardar };
+
+        Assert.False(config.CopiaAlPortapapeles);
+    }
+
+    [Fact]
+    public void Destino_ConUnNumeroQueNoExiste_CopiaYGuarda() {
+        var config = new Config { Destino = (DestinoCaptura)7 };
+
+        // Se comporta como la opcion por defecto, asi no se pierde la captura
+        Assert.True(config.CopiaAlPortapapeles && config.GuardaEnArchivo);
+    }
+
+    [Fact]
     public void Copiar_NoCambiaElOriginal() {
         var original = new Config { Carpeta = "A" };
 
