@@ -271,19 +271,28 @@ class AppBandeja : ApplicationContext {
     }
 
     // Saca la imagen de una zona de la pantalla, la copia al portapapeles y la guarda
+    // Segun el destino elegido en la configuracion la copia al portapapeles, la guarda o hace las dos cosas
     void CapturarZona(Rectangle zona) {
         using var imagen = _capturador.Capturar(zona);
-        Clipboard.SetImage(imagen);
+        if (_config.CopiaAlPortapapeles) Clipboard.SetImage(imagen);
+
+        // Si solo se copia no hay nada que nombrar ni que guardar
+        if (!_config.GuardaEnArchivo) {
+            _avisoDeGuardado = false;
+            _icono.ShowBalloonTip(1500, "LiveSnip", "Copiada al portapapeles", ToolTipIcon.None);
+            return;
+        }
 
         // Nombre: fecha y hora, o el que escriba el usuario si lo activo en ajustes
         string nombre = _almacen.NombrePorDefecto();
         if (_config.PedirNombre) {
             var elegido = VentanaNombre.Pedir(nombre);
 
-            // Si cancela no se guarda el archivo, la imagen queda solo en el portapapeles
+            // Si cancela no se guarda el archivo, y la imagen queda en el portapapeles solo si se estaba copiando
             if (elegido is null) {
                 _avisoDeGuardado = false;
-                _icono.ShowBalloonTip(1500, "LiveSnip", "Copiada al portapapeles, no se guardó", ToolTipIcon.None);
+                string mensaje = _config.CopiaAlPortapapeles ? "Copiada al portapapeles, no se guardó" : "No se guardó la captura";
+                _icono.ShowBalloonTip(1500, "LiveSnip", mensaje, ToolTipIcon.None);
                 return;
             }
             nombre = elegido;
@@ -291,7 +300,8 @@ class AppBandeja : ApplicationContext {
 
         _almacen.Guardar(imagen, nombre);
         _avisoDeGuardado = true;
-        _icono.ShowBalloonTip(1500, "LiveSnip", "Copiada y guardada en " + _almacen.Carpeta, ToolTipIcon.None);
+        string accion = _config.CopiaAlPortapapeles ? "Copiada y guardada en " : "Guardada en ";
+        _icono.ShowBalloonTip(1500, "LiveSnip", accion + _almacen.Carpeta, ToolTipIcon.None);
     }
 
     void Salir() {
