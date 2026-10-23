@@ -103,6 +103,7 @@ class AppBandeja : ApplicationContext {
         var menu = new ContextMenuStrip();
         menu.Items.Add("Capturar", null, (_, _) => Capturar());
         menu.Items.Add("Repetir última captura", null, (_, _) => RepetirCaptura(esperarAntes: true));
+        menu.Items.Add("Abrir última captura", null, (_, _) => AbrirUltimaCaptura());
 
         // Submenu de relaciones de aspecto
         var aspecto = new ToolStripMenuItem("Relación de aspecto");
@@ -129,6 +130,21 @@ class AppBandeja : ApplicationContext {
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("Salir", null, (_, _) => Salir());
         return menu;
+    }
+
+    // Abre en el visor de imagenes de Windows el .png mas reciente de la carpeta de capturas
+    void AbrirUltimaCaptura() {
+        try {
+            string? ruta = _almacen.UltimaCaptura();
+            if (ruta is null) {
+                AvisarSinCaptura("Todavía no hay ninguna captura guardada");
+                return;
+            }
+            Process.Start(new ProcessStartInfo(ruta) { UseShellExecute = true });
+        } catch (Exception ex) {
+            _avisoDeGuardado = false;
+            _icono.ShowBalloonTip(3000, "LiveSnip", "No se pudo abrir la captura: " + ex.Message, ToolTipIcon.Error);
+        }
     }
 
     // Abre la carpeta de capturas en el Explorador, si no existe la crea y si falla avisa

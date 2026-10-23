@@ -8,6 +8,7 @@ public interface IAlmacenCapturas {
     void Configurar(string carpetaPreferida);
     string NombrePorDefecto();
     string Guardar(Bitmap imagen, string nombre);
+    string? UltimaCaptura();
 }
 
 public sealed class AlmacenCapturas : IAlmacenCapturas {
@@ -36,6 +37,15 @@ public sealed class AlmacenCapturas : IAlmacenCapturas {
 
     // Fecha y hora en formato ano-mes-dia-hora-minutos-segundos
     public string NombrePorDefecto() => $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}";
+
+    // Ruta del .png mas reciente de la carpeta, o null si no hay ninguno
+    public string? UltimaCaptura() {
+        if (!Directory.Exists(Carpeta)) return null;
+
+        return new DirectoryInfo(Carpeta).GetFiles("*.png")
+            .OrderByDescending(archivo => archivo.LastWriteTimeUtc)
+            .FirstOrDefault()?.FullName;
+    }
 
     // Guardado como PNG y devuelve la ruta final (agregando -2, -3... si el nombre ya existe)
     public string Guardar(Bitmap imagen, string nombre) {
