@@ -2,7 +2,7 @@ using LiveSnip.Nucleo;
 
 namespace LiveSnip.Interfaz;
 
-// Ventana de configuracion: atajos, aspecto por defecto, oscuridad de la capa, carpeta y nombre
+// Ventana de configuracion: atajos, aspecto por defecto, oscuridad de la capa, destino, carpeta y nombre
 class VentanaConfiguracion : Form {
     public Config Resultado { get; }
 
@@ -16,7 +16,9 @@ class VentanaConfiguracion : Form {
         TickFrequency = 10, SmallChange = 1, LargeChange = 10
     };
     readonly Label _oscuridadValor = new() { AutoSize = false, TextAlign = ContentAlignment.MiddleLeft };
+    readonly ComboBox _destino = new() { DropDownStyle = ComboBoxStyle.DropDownList };
     readonly TextBox _carpeta = new();
+    readonly CheckBox _mostrarAviso = new() { Text = "Mostrar un aviso al terminar cada captura" };
     readonly CheckBox _pedirNombre = new() { Text = "Preguntar el nombre al guardar cada captura" };
     readonly CheckBox _iniciar = new() { Text = "Iniciar con Windows" };
 
@@ -29,7 +31,7 @@ class VentanaConfiguracion : Form {
         MaximizeBox = false;
         MinimizeBox = false;
         StartPosition = FormStartPosition.CenterScreen;
-        ClientSize = new Size(440, 428);
+        ClientSize = new Size(440, 515);
         Font = new Font("Segoe UI", 9);
         TopMost = true;
 
@@ -77,13 +79,20 @@ class VentanaConfiguracion : Form {
         Controls.Add(_oscuridadValor);
         ActualizarOscuridad();
 
+        // Destino de cada captura, el orden de la lista es el mismo que el de DestinoCaptura
+        Controls.Add(new Label { Text = "Cada captura se:", Left = 15, Top = 261, AutoSize = true });
+        _destino.SetBounds(15, 284, 200, 25);
+        _destino.Items.AddRange(new object[] { "Copia y se guarda", "Solo se copia", "Solo se guarda" });
+        _destino.SelectedIndex = Math.Clamp((int)Resultado.Destino, 0, _destino.Items.Count - 1);
+        Controls.Add(_destino);
+
         // Carpeta
-        Controls.Add(new Label { Text = "Carpeta de guardado (vacío = automática):", Left = 15, Top = 261, AutoSize = true });
-        _carpeta.SetBounds(15, 284, 320, 25);
+        Controls.Add(new Label { Text = "Carpeta de guardado (vacío = automática):", Left = 15, Top = 321, AutoSize = true });
+        _carpeta.SetBounds(15, 344, 320, 25);
         _carpeta.Text = Resultado.Carpeta;
         Controls.Add(_carpeta);
 
-        var elegir = new Button { Text = "Elegir...", Left = 343, Top = 283, Width = 82, Height = 27 };
+        var elegir = new Button { Text = "Elegir...", Left = 343, Top = 343, Width = 82, Height = 27 };
         elegir.Click += (_, _) => {
             using var dlg = new FolderBrowserDialog();
             if (dlg.ShowDialog() == DialogResult.OK) _carpeta.Text = dlg.SelectedPath;
@@ -91,23 +100,30 @@ class VentanaConfiguracion : Form {
         Controls.Add(elegir);
 
         // Nombre de archivo
-        _pedirNombre.SetBounds(15, 320, 410, 24);
+        _pedirNombre.SetBounds(15, 380, 410, 24);
         _pedirNombre.Checked = Resultado.PedirNombre;
         Controls.Add(_pedirNombre);
 
+        // Aviso al terminar la captura
+        _mostrarAviso.SetBounds(15, 407, 410, 24);
+        _mostrarAviso.Checked = Resultado.MostrarAviso;
+        Controls.Add(_mostrarAviso);
+
         // Arranque con Windows
-        _iniciar.SetBounds(15, 347, 410, 24);
+        _iniciar.SetBounds(15, 434, 410, 24);
         _iniciar.Checked = Resultado.IniciarConWindows;
         Controls.Add(_iniciar);
 
-        var guardar = new Button { Text = "Guardar", DialogResult = DialogResult.OK, Left = 255, Top = 387, Width = 85 };
-        var cancelar = new Button { Text = "Cancelar", DialogResult = DialogResult.Cancel, Left = 345, Top = 387, Width = 80 };
+        var guardar = new Button { Text = "Guardar", DialogResult = DialogResult.OK, Left = 255, Top = 474, Width = 85 };
+        var cancelar = new Button { Text = "Cancelar", DialogResult = DialogResult.Cancel, Left = 345, Top = 474, Width = 80 };
         guardar.Click += (_, _) => {
             Resultado.Aspecto = _aspecto.SelectedIndex;
             Resultado.AnchoPersonalizado = (int)_ancho.Value;
             Resultado.AltoPersonalizado = (int)_alto.Value;
             Resultado.OscuridadCapa = _oscuridad.Value;
             Resultado.Carpeta = _carpeta.Text.Trim();
+            Resultado.Destino = (DestinoCaptura)_destino.SelectedIndex;
+            Resultado.MostrarAviso = _mostrarAviso.Checked;
             Resultado.PedirNombre = _pedirNombre.Checked;
             Resultado.IniciarConWindows = _iniciar.Checked;
         };
