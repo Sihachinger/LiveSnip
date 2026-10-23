@@ -8,6 +8,11 @@ public class Config {
     // Combinacion de Modificador + Tecla (Ctrl + Alt por defecto)
     public uint Modificadores { get; set; } = ModificadorTecla.Ctrl | ModificadorTecla.Alt;
     public int Tecla { get; set; } = (int)Keys.S;
+
+    // Atajo para repetir la ultima captura (Ctrl + Alt + R por defecto)
+    public uint ModificadoresRepetir { get; set; } = ModificadorTecla.Ctrl | ModificadorTecla.Alt;
+    public int TeclaRepetir { get; set; } = (int)Keys.R;
+
     public string Carpeta { get; set; } = "";       // vacio = automatica
     public int Aspecto { get; set; } = 0;           // indice en RelacionAspecto.Todas (6 = personalizada)
     public int AnchoPersonalizado { get; set; } = 21;  // numeros de la relacion personalizada (21:9)
@@ -24,6 +29,7 @@ public class Config {
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "LiveSnip", "config.json");
 
     [JsonIgnore] public string Atajo => Describir(Modificadores, (Keys)Tecla);
+    [JsonIgnore] public string AtajoRepetir => Describir(ModificadoresRepetir, (Keys)TeclaRepetir);
     [JsonIgnore] public RelacionAspecto Personalizada => RelacionAspecto.Personalizada(AnchoPersonalizado, AltoPersonalizado);
     // Opacidad que se le pone a la capa (de 0.1 a 1), corrige cualquier valor fuera de rango del config.json
     [JsonIgnore] public double OpacidadCapa =>
