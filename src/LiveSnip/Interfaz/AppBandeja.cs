@@ -270,6 +270,13 @@ class AppBandeja : ApplicationContext {
         _icono.ShowBalloonTip(2500, "LiveSnip", mensaje, ToolTipIcon.None);
     }
 
+    // Aviso de captura exitosa, se puede apagar en la configuracion
+    // Los errores y los demas avisos no se apagan
+    void AvisarExito(string mensaje) {
+        if (!_config.MostrarAviso) return;
+        _icono.ShowBalloonTip(1500, "LiveSnip", mensaje, ToolTipIcon.None);
+    }
+
     // Saca la imagen de una zona de la pantalla, la copia al portapapeles y la guarda
     // Segun el destino elegido en la configuracion la copia al portapapeles, la guarda o hace las dos cosas
     void CapturarZona(Rectangle zona) {
@@ -279,7 +286,7 @@ class AppBandeja : ApplicationContext {
         // Si solo se copia no hay nada que nombrar ni que guardar
         if (!_config.GuardaEnArchivo) {
             _avisoDeGuardado = false;
-            _icono.ShowBalloonTip(1500, "LiveSnip", "Copiada al portapapeles", ToolTipIcon.None);
+            AvisarExito("Copiada al portapapeles");
             return;
         }
 
@@ -301,7 +308,7 @@ class AppBandeja : ApplicationContext {
         _almacen.Guardar(imagen, nombre);
         _avisoDeGuardado = true;
         string accion = _config.CopiaAlPortapapeles ? "Copiada y guardada en " : "Guardada en ";
-        _icono.ShowBalloonTip(1500, "LiveSnip", accion + _almacen.Carpeta, ToolTipIcon.None);
+        AvisarExito(accion + _almacen.Carpeta);
     }
 
     void Salir() {
