@@ -199,32 +199,37 @@ class AppBandeja : ApplicationContext {
             // Pequena pausa para que la capa desaparezca antes de capturar
             Thread.Sleep(120);
 
-            using var imagen = _capturador.Capturar(zona);
-            Clipboard.SetImage(imagen);
-
-            // Nombre: fecha y hora, o el que escriba el usuario si lo activo en ajustes
-            string nombre = _almacen.NombrePorDefecto();
-            if (_config.PedirNombre) {
-                var elegido = VentanaNombre.Pedir(nombre);
-
-                // Si cancela no se guarda el archivo, la imagen queda solo en el portapapeles
-                if (elegido is null) {
-                    _avisoDeGuardado = false;
-                    _icono.ShowBalloonTip(1500, "LiveSnip", "Copiada al portapapeles, no se guardó", ToolTipIcon.None);
-                    return;
-                }
-                nombre = elegido;
-            }
-
-            _almacen.Guardar(imagen, nombre);
-            _avisoDeGuardado = true;
-            _icono.ShowBalloonTip(1500, "LiveSnip", "Copiada y guardada en " + _almacen.Carpeta, ToolTipIcon.None);
+            CapturarZona(zona);
         } catch (Exception ex) {
             _avisoDeGuardado = false;
             _icono.ShowBalloonTip(3000, "LiveSnip", "Error: " + ex.Message, ToolTipIcon.Error);
         } finally {
             _capturando = false;
         }
+    }
+
+    // Saca la imagen de una zona de la pantalla, la copia al portapapeles y la guarda
+    void CapturarZona(Rectangle zona) {
+        using var imagen = _capturador.Capturar(zona);
+        Clipboard.SetImage(imagen);
+
+        // Nombre: fecha y hora, o el que escriba el usuario si lo activo en ajustes
+        string nombre = _almacen.NombrePorDefecto();
+        if (_config.PedirNombre) {
+            var elegido = VentanaNombre.Pedir(nombre);
+
+            // Si cancela no se guarda el archivo, la imagen queda solo en el portapapeles
+            if (elegido is null) {
+                _avisoDeGuardado = false;
+                _icono.ShowBalloonTip(1500, "LiveSnip", "Copiada al portapapeles, no se guardó", ToolTipIcon.None);
+                return;
+            }
+            nombre = elegido;
+        }
+
+        _almacen.Guardar(imagen, nombre);
+        _avisoDeGuardado = true;
+        _icono.ShowBalloonTip(1500, "LiveSnip", "Copiada y guardada en " + _almacen.Carpeta, ToolTipIcon.None);
     }
 
     void Salir() {
