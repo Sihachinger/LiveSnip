@@ -39,6 +39,37 @@ public class ConfigTests {
     }
 
     [Fact]
+    public void AtajoRepetirPorDefecto_EsCtrlAltR() {
+        var config = new Config();
+
+        Assert.Equal("Ctrl + Alt + R", config.AtajoRepetir);
+    }
+
+    [Fact]
+    public void TransparenciaPorDefecto_DejaLaOpacidadDeSiempre() {
+        var config = new Config();
+
+        // 60 % de transparencia es la opacidad 0.4 que tenia la capa antes del ajuste
+        Assert.Equal(0.4, config.OpacidadCapa, 5);
+    }
+
+    [Fact]
+    public void Transparencia_ConUnValorMuyAlto_SeCorrigeAlMaximo() {
+        var config = new Config { TransparenciaCapa = 200 };
+
+        // El maximo es 90 %, o sea opacidad 0.1
+        Assert.Equal(0.1, config.OpacidadCapa, 5);
+    }
+
+    [Fact]
+    public void Transparencia_ConUnValorNegativo_SeCorrigeAlMinimo() {
+        var config = new Config { TransparenciaCapa = -5 };
+
+        // El minimo es 0 %, o sea opacidad 1 (capa negra del todo)
+        Assert.Equal(1.0, config.OpacidadCapa, 5);
+    }
+
+    [Fact]
     public void Copiar_NoCambiaElOriginal() {
         var original = new Config { Carpeta = "A" };
 
