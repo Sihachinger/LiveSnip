@@ -13,6 +13,8 @@ class CapaSeleccion : Form {
     Estado _estado = Estado.Eligiendo;
 
     bool _moviendo;                 // true mientras se arrastra la zona abierta para moverla
+    Tirador? _tiradorActivo;        // el tirador que se esta arrastrando para cambiar el tamano
+    Rectangle _zonaAntesDeAjustar;  // como estaba la zona al empezar a arrastrar el tirador
     Point _desfaseMovimiento;       // distancia entre el clic y la esquina de la zona al empezar a moverla
     Point _inicio;          // donde se hizo clic para empezar a arrastrar
     Rectangle _seleccion;   // rectangulo actual, en coordenadas de la capa
@@ -85,7 +87,7 @@ class CapaSeleccion : Form {
         // Clic derecho cancela
         if (e.Button == MouseButtons.Right) { Close(); return; }
         if (_estado == Estado.Eligiendo) EmpezarSeleccion(e.Location);
-        else EmpezarMovimiento(e.Location);
+        else EmpezarAjuste(e.Location);
     }
 
     protected override void OnMouseMove(MouseEventArgs e) {
@@ -95,20 +97,46 @@ class CapaSeleccion : Form {
 
     protected override void OnMouseUp(MouseEventArgs e) {
         if (_estado == Estado.Eligiendo) TerminarSeleccion();
-        else _moviendo = false;
+        else {
+            _moviendo = false;
+            _tiradorActivo = null;
+        }
     }
 
-    // Con la zona abierta, arrastrar desde adentro la mueve, un clic afuera no hace nada
-    void EmpezarMovimiento(Point punto) {
+    // Los tiradores que se pueden usar ahora, con un aspecto fijo solo las esquinas
+    Tirador[] TiradoresActivos() => Relacion.Valor is null ? Tiradores.Todos : Tiradores.Esquinas;
+
+    // Tirador que hay bajo el mouse, con un margen extra para que no sea tan dificil acertarle
+    Tirador? TiradorEn(Point punto) {
+        foreach (var tirador in TiradoresActivos())
+            if (Rectangle.Inflate(Tiradores.Area(_seleccion, tirador), 4, 4).Contains(punto)) return tirador;
+        return null;
+    }
+
+    // Con la zona abierta, arrastrar un tirador cambia el tamano y arrastrar desde adentro la mueve
+    // Un clic afuera no hace nada
+    void EmpezarAjuste(Point punto) {
+        if (TiradorEn(punto) is Tirador tirador) {
+            _tiradorActivo = tirador;
+            _zonaAntesDeAjustar = _seleccion;
+            return;
+        }
         if (!_seleccion.Contains(punto)) return;
         _moviendo = true;
         _desfaseMovimiento = new Point(punto.X - _seleccion.X, punto.Y - _seleccion.Y);
     }
 
     void MoverZona(Point punto) {
+        if (_tiradorActivo is Tirador activo) {
+            _seleccion = AjusteDeZona.Redimensionar(_zonaAntesDeAjustar, activo, punto, Relacion, Size);
+            _marco.Mostrar(_seleccion);
+            ActualizarRotulo();
+            return;
+        }
+
         if (!_moviendo) {
-            // Sin arrastrar, el cursor avisa si desde ahi se puede mover la zona
-            var cursor = _seleccion.Contains(punto) ? Cursors.SizeAll : Cursors.Cross;
+            // Sin arrastrar, el cursor avisa que se puede hacer desde ahi
+            var cursor = CursorEn(punto);
             if (Cursor != cursor) Cursor = cursor;
             return;
         }
@@ -120,6 +148,15 @@ class CapaSeleccion : Form {
         _marco.Mostrar(_seleccion);
         ActualizarRotulo();
     }
+
+    // Cursor que corresponde a lo que se puede hacer en ese punto de la zona abierta
+    Cursor CursorEn(Point punto) => TiradorEn(punto) switch {
+        Tirador.ArribaIzquierda or Tirador.AbajoDerecha => Cursors.SizeNWSE,
+        Tirador.ArribaDerecha or Tirador.AbajoIzquierda => Cursors.SizeNESW,
+        Tirador.Arriba or Tirador.Abajo => Cursors.SizeNS,
+        Tirador.Izquierda or Tirador.Derecha => Cursors.SizeWE,
+        _ => _seleccion.Contains(punto) ? Cursors.SizeAll : Cursors.Cross
+    };
 
     void EmpezarSeleccion(Point punto) {
         _inicio = punto;
@@ -147,7 +184,7 @@ class CapaSeleccion : Form {
         // En modo edicion la zona queda abierta para corregirla, y se confirma con Enter o con doble clic
         if (_editar) {
             _estado = Estado.Ajustando;
-            _marco.MostrarTiradores(true);
+            _marco.MostrarTiradores(TiradoresActivos());
             return;
         }
         Confirmar();
@@ -190,6 +227,13 @@ class CapaSeleccion : Form {
             // Si ya esta arrastrando, aplica el nuevo aspecto al momento
             if (_arrastrando)
                 _seleccion = Relacion.Ajustar(_inicio, PointToClient(Cursor.Position), Size);
+
+            // Con la zona abierta se le aplica el aspecto nuevo desde su esquina de arriba, y los tiradores cambian
+            // (con un aspecto fijo solo quedan los de las esquinas)
+            if (_estado == Estado.Ajustando) {
+                _seleccion = Relacion.Ajustar(_seleccion.Location, new Point(_seleccion.Right, _seleccion.Bottom), Size);
+                _marco.MostrarTiradores(TiradoresActivos());
+            }
 
             // El marco se redibuja con el nuevo aspecto
             _marco.Mostrar(_seleccion);

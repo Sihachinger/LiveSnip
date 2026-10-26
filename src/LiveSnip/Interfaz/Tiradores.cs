@@ -1,18 +1,17 @@
-namespace LiveSnip.Interfaz;
+using LiveSnip.Nucleo;
 
-// Los 8 puntos de una zona que se pueden arrastrar para cambiar su tamano
-enum Tirador {
-    ArribaIzquierda, Arriba, ArribaDerecha,
-    Derecha,
-    AbajoDerecha, Abajo, AbajoIzquierda,
-    Izquierda
-}
+namespace LiveSnip.Interfaz;
 
 // Calcula donde esta cada tirador de una zona, sirve para dibujarlos y para saber si el mouse esta encima
 static class Tiradores {
     public const int Tamano = 10;   // lado del cuadrito que se dibuja
 
     public static readonly Tirador[] Todos = Enum.GetValues<Tirador>();
+
+    // Con un aspecto fijo solo se usan los de las esquinas, para no deformar la proporcion
+    public static readonly Tirador[] Esquinas = {
+        Tirador.ArribaIzquierda, Tirador.ArribaDerecha, Tirador.AbajoDerecha, Tirador.AbajoIzquierda
+    };
 
     // Punto de la zona donde va el centro del tirador, en las esquinas y en la mitad de cada lado
     static Point Punto(Rectangle zona, Tirador tirador) => tirador switch {

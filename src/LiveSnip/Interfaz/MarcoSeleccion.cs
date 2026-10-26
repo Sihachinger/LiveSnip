@@ -1,3 +1,5 @@
+using LiveSnip.Nucleo;
+
 namespace LiveSnip.Interfaz;
 
 // Dibuja el marco verde de la seleccion y sus medidas encima de la capa.
@@ -16,7 +18,7 @@ class MarcoSeleccion : Form {
 
     readonly Font _fuente = new("Segoe UI", 11);
     Rectangle _seleccion;   // en coordenadas de esta ventana, que coinciden con las de la capa
-    bool _conTiradores;     // true cuando la zona esta abierta para ajustarla
+    Tirador[] _tiradores = Array.Empty<Tirador>();   // los que se dibujan, ninguno mientras no se pueda ajustar
 
     public MarcoSeleccion() {
         FormBorderStyle = FormBorderStyle.None;
@@ -40,8 +42,8 @@ class MarcoSeleccion : Form {
     }
 
     // Muestra u oculta los tiradores de las esquinas y los bordes, solo hacen falta cuando la zona se puede ajustar
-    public void MostrarTiradores(bool mostrar) {
-        _conTiradores = mostrar;
+    public void MostrarTiradores(Tirador[] tiradores) {
+        _tiradores = tiradores;
         Invalidate(ZonaDeDibujo(_seleccion));
     }
 
@@ -68,12 +70,10 @@ class MarcoSeleccion : Form {
         grafico.DrawRectangle(lapiz, _seleccion);
 
         // Con la zona abierta se dibujan los tiradores, cuadritos verdes con borde negro para que se vean sobre cualquier fondo
-        if (_conTiradores) {
-            foreach (var tirador in Tiradores.Todos) {
-                var area = Tiradores.Area(_seleccion, tirador);
-                grafico.FillRectangle(Brushes.Lime, area);
-                grafico.DrawRectangle(Pens.Black, area);
-            }
+        foreach (var tirador in _tiradores) {
+            var area = Tiradores.Area(_seleccion, tirador);
+            grafico.FillRectangle(Brushes.Lime, area);
+            grafico.DrawRectangle(Pens.Black, area);
         }
 
         // Las medidas van sobre un cuadro negro, asi se leen bien y no queda borde rosado del color transparente
