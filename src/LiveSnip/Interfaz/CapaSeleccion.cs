@@ -90,6 +90,16 @@ class CapaSeleccion : Form {
         ActualizarRotulo();
     }
 
+    // Doble clic con el boton izquierdo selecciona todo el monitor
+    protected override void OnMouseDoubleClick(MouseEventArgs e) {
+        base.OnMouseDoubleClick(e);
+        if (e.Button != MouseButtons.Left) return;
+
+        // El resultado va en coordenadas de pantalla, que para el monitor entero son sus limites
+        Resultado = Bounds;
+        Close();
+    }
+
     protected override void OnMouseUp(MouseEventArgs e) {
         if (!_arrastrando) return;
         _arrastrando = false;
