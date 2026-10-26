@@ -13,6 +13,7 @@ class AppBandeja : ApplicationContext {
     readonly VentanaAtajo _atajo;
     const int IdAtajoCapturar = 1;   // numero con el que se registra el atajo de capturar
     const int IdAtajoRepetir = 2;    // numero con el que se registra el atajo de repetir la captura
+    const int IdAtajoPantallaCompleta = 3;   // numero con el que se registra el atajo de la pantalla completa
     Config _config;
 
     bool _capturando;        // evita abrir dos selecciones a la vez
@@ -50,6 +51,7 @@ class AppBandeja : ApplicationContext {
         _atajo = new VentanaAtajo(AlPresionarAtajo);
         AplicarAtajo();
         AplicarAtajoRepetir();
+        AplicarAtajoPantallaCompleta();
 
         // Se crea el control en este hilo y se queda esperando la senal de otra copia
         _ = _enlaceConLaInterfaz.Handle;
@@ -78,6 +80,7 @@ class AppBandeja : ApplicationContext {
     void AlPresionarAtajo(int id) {
         if (id == IdAtajoCapturar) Capturar();
         else if (id == IdAtajoRepetir) RepetirCaptura(esperarAntes: false);
+        else if (id == IdAtajoPantallaCompleta) CapturarPantallaCompleta(esperarAntes: false);
     }
 
     // Registra el atajo de la config, si esta ocupado avisa
@@ -99,9 +102,19 @@ class AppBandeja : ApplicationContext {
         return ok;
     }
 
+    // Registra el atajo de la pantalla completa, si esta ocupado avisa
+    bool AplicarAtajoPantallaCompleta() {
+        bool ok = _atajo.Registrar(IdAtajoPantallaCompleta, _config.ModificadoresPantallaCompleta, (uint)_config.TeclaPantallaCompleta);
+        if (!ok)
+            MessageBox.Show($"No se pudo registrar {_config.AtajoPantallaCompleta}, otra app ya lo usa.\nElija otro en Configuración.",
+                "LiveSnip", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        return ok;
+    }
+
     ContextMenuStrip CrearMenu() {
         var menu = new ContextMenuStrip();
         menu.Items.Add("Capturar", null, (_, _) => Capturar());
+        menu.Items.Add("Capturar pantalla completa", null, (_, _) => CapturarPantallaCompleta(esperarAntes: true));
         menu.Items.Add("Repetir última captura", null, (_, _) => RepetirCaptura(esperarAntes: true));
         menu.Items.Add("Abrir última captura", null, (_, _) => AbrirUltimaCaptura());
 
@@ -215,6 +228,13 @@ class AppBandeja : ApplicationContext {
                 AplicarAtajoRepetir();
             }
 
+            // Y para el de la pantalla completa
+            if (!AplicarAtajoPantallaCompleta()) {
+                _config.ModificadoresPantallaCompleta = anterior.ModificadoresPantallaCompleta;
+                _config.TeclaPantallaCompleta = anterior.TeclaPantallaCompleta;
+                AplicarAtajoPantallaCompleta();
+            }
+
             _almacen.Configurar(_config.Carpeta);
             _inicio.Establecer(_config.IniciarConWindows);
             _config.Guardar();
@@ -268,9 +288,21 @@ class AppBandeja : ApplicationContext {
             return;
         }
 
+        CapturarSinCapa(zona, esperarAntes);
+    }
+
+    // Captura todo el monitor donde esta el mouse, sin mostrar la capa
+    void CapturarPantallaCompleta(bool esperarAntes) {
+        if (_capturando) return;
+        CapturarSinCapa(Screen.FromPoint(Cursor.Position).Bounds, esperarAntes);
+    }
+
+    // Captura una zona que ya se conoce, sin elegirla en la capa, y la recuerda para poder repetirla
+    void CapturarSinCapa(Rectangle zona, bool esperarAntes) {
         _capturando = true;
         try {
             if (esperarAntes) Thread.Sleep(200);
+            _ultimaZona = zona;
             CapturarZona(zona);
         } catch (Exception ex) {
             _avisoDeGuardado = false;
