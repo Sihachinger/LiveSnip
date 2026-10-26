@@ -61,7 +61,8 @@ class RotuloAyuda : Form {
     }
 
     // Arma el cartel con las opciones de aspecto (la activa va resaltada) y lo deja centrado arriba del monitor
-    public void Colocar(IReadOnlyList<string> opciones, int activa, Rectangle monitor) {
+    // conEnter agrega el aviso de que Enter confirma, para cuando se puede ajustar la zona antes de capturar
+    public void Colocar(IReadOnlyList<string> opciones, int activa, Rectangle monitor, bool conEnter) {
         _piezas.Clear();
 
         int altoTexto = TextRenderer.MeasureText("Ag", _fuente, Size.Empty, TextFormatFlags.NoPadding).Height;
@@ -78,6 +79,7 @@ class RotuloAyuda : Form {
         Agregar("Arrastre para elegir", false, false);
         for (int i = 0; i < opciones.Count; i++)
             Agregar(opciones[i], true, i == activa);
+        if (conEnter) Agregar("Enter confirma", false, false);
         Agregar("Esc cancela", false, false);
 
         // x quedo despues de la ultima pieza mas la separacion, que se cambia por el margen

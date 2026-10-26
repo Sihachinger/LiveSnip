@@ -16,12 +16,14 @@ class CapaSeleccion : Form {
     Rectangle _seleccion;   // rectangulo actual, en coordenadas de la capa
     bool _arrastrando;      // true mientras el mouse esta presionado
     readonly RelacionAspecto _personalizada;   // la que se elige con la tecla 6
+    readonly bool _editar;                     // true si al soltar el mouse la zona queda abierta para ajustarla
     readonly RotuloAyuda _rotulo = new();      // cartel de ayuda de arriba, con su propio fondo
     readonly MarcoSeleccion _marco = new();    // marco verde y medidas, en otra ventana para que la oscuridad no los afecte
 
-    public CapaSeleccion(Screen pantalla, RelacionAspecto relacion, RelacionAspecto personalizada, double opacidad) {
+    public CapaSeleccion(Screen pantalla, RelacionAspecto relacion, RelacionAspecto personalizada, double opacidad, bool editar) {
         Relacion = relacion;
         _personalizada = personalizada;
+        _editar = editar;
 
         // Ventana sin bordes que cubre todo el monitor, siempre encima de lo demas
         FormBorderStyle = FormBorderStyle.None;
@@ -62,7 +64,7 @@ class CapaSeleccion : Form {
             opciones.Add($"{i} {RelacionAspecto.Todas[i].Nombre}");
         opciones.Add($"{RelacionAspecto.IndicePersonalizada} {_personalizada.Nombre}");
 
-        _rotulo.Colocar(opciones, Relacion.Indice, Bounds);
+        _rotulo.Colocar(opciones, Relacion.Indice, Bounds, _editar);
     }
 
     // Oculta el cartel mientras la seleccion lo pisa y lo vuelve a mostrar cuando deja de pisarlo
@@ -114,6 +116,11 @@ class CapaSeleccion : Form {
         // Ignora los clics sueltos
         if (_seleccion.Width < 5 || _seleccion.Height < 5) return;
 
+        // En modo edicion la zona queda abierta para corregirla, y se confirma con Enter o con doble clic
+        if (_editar) {
+            _estado = Estado.Ajustando;
+            return;
+        }
         Confirmar();
     }
 
@@ -130,6 +137,12 @@ class CapaSeleccion : Form {
         base.OnMouseDoubleClick(e);
         if (e.Button != MouseButtons.Left) return;
 
+        // Con la zona abierta, doble clic dentro de ella la confirma
+        if (_estado == Estado.Ajustando && _seleccion.Contains(e.Location)) {
+            Confirmar();
+            return;
+        }
+
         // El resultado va en coordenadas de pantalla, que para el monitor entero son sus limites
         Resultado = Bounds;
         Close();
@@ -137,6 +150,9 @@ class CapaSeleccion : Form {
 
     protected override void OnKeyDown(KeyEventArgs e) {
         if (e.KeyCode == Keys.Escape) { Close(); return; }
+
+        // Con la zona abierta, Enter la confirma
+        if (e.KeyCode == Keys.Enter && _estado == Estado.Ajustando) { Confirmar(); return; }
 
         // Teclas 0-5 cambian la relacion de aspecto y la 6 usa la personalizada
         int i = e.KeyCode - Keys.D0;
