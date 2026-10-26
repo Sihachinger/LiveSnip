@@ -8,6 +8,10 @@ class CapaSeleccion : Form {
     public Rectangle? Resultado { get; private set; } // en coordenadas de pantalla
     public RelacionAspecto Relacion { get; private set; }
 
+    // En que momento esta la capa, Eligiendo es dibujar la zona y Ajustando es corregirla antes de capturar
+    enum Estado { Eligiendo, Ajustando }
+    Estado _estado = Estado.Eligiendo;
+
     Point _inicio;          // donde se hizo clic para empezar a arrastrar
     Rectangle _seleccion;   // rectangulo actual, en coordenadas de la capa
     bool _arrastrando;      // true mientras el mouse esta presionado
@@ -72,22 +76,53 @@ class CapaSeleccion : Form {
         if (_rotulo.EstaOculto != pisa) _rotulo.Ocultar(pisa);
     }
 
+    // Lo que hace el mouse depende del momento en que este la capa
     protected override void OnMouseDown(MouseEventArgs e) {
         // Clic derecho cancela
         if (e.Button == MouseButtons.Right) { Close(); return; }
-        _inicio = e.Location;
+        if (_estado == Estado.Eligiendo) EmpezarSeleccion(e.Location);
+    }
+
+    protected override void OnMouseMove(MouseEventArgs e) {
+        if (_estado == Estado.Eligiendo) ArrastrarSeleccion(e.Location);
+    }
+
+    protected override void OnMouseUp(MouseEventArgs e) {
+        if (_estado == Estado.Eligiendo) TerminarSeleccion();
+    }
+
+    void EmpezarSeleccion(Point punto) {
+        _inicio = punto;
         _seleccion = Rectangle.Empty;
         _marco.Mostrar(_seleccion);
         _arrastrando = true;
         ActualizarRotulo();
     }
 
-    protected override void OnMouseMove(MouseEventArgs e) {
+    void ArrastrarSeleccion(Point punto) {
         if (!_arrastrando) return;
         // Recalcula el rectangulo con la posicion del mouse y lo redibuja en el marco
-        _seleccion = Relacion.Ajustar(_inicio, e.Location, Size);
+        _seleccion = Relacion.Ajustar(_inicio, punto, Size);
         _marco.Mostrar(_seleccion);
         ActualizarRotulo();
+    }
+
+    void TerminarSeleccion() {
+        if (!_arrastrando) return;
+        _arrastrando = false;
+
+        // Ignora los clics sueltos
+        if (_seleccion.Width < 5 || _seleccion.Height < 5) return;
+
+        Confirmar();
+    }
+
+    // Termina con la zona que hay ahora, pasandola a coordenadas de pantalla sumando donde empieza el monitor
+    void Confirmar() {
+        Resultado = new Rectangle(
+            _seleccion.X + Bounds.X, _seleccion.Y + Bounds.Y,
+            _seleccion.Width, _seleccion.Height);
+        Close();
     }
 
     // Doble clic con el boton izquierdo selecciona todo el monitor
@@ -97,20 +132,6 @@ class CapaSeleccion : Form {
 
         // El resultado va en coordenadas de pantalla, que para el monitor entero son sus limites
         Resultado = Bounds;
-        Close();
-    }
-
-    protected override void OnMouseUp(MouseEventArgs e) {
-        if (!_arrastrando) return;
-        _arrastrando = false;
-
-        // Ignora los clics sueltos
-        if (_seleccion.Width < 5 || _seleccion.Height < 5) return;
-
-        // Pasa a coordenadas de pantalla sumando donde empieza el monitor
-        Resultado = new Rectangle(
-            _seleccion.X + Bounds.X, _seleccion.Y + Bounds.Y,
-            _seleccion.Width, _seleccion.Height);
         Close();
     }
 
