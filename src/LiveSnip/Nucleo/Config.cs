@@ -13,6 +13,10 @@ public class Config {
     public uint ModificadoresRepetir { get; set; } = ModificadorTecla.Ctrl | ModificadorTecla.Alt;
     public int TeclaRepetir { get; set; } = (int)Keys.R;
 
+    // Atajo para capturar la pantalla completa (Ctrl + Alt + F por defecto)
+    public uint ModificadoresPantallaCompleta { get; set; } = ModificadorTecla.Ctrl | ModificadorTecla.Alt;
+    public int TeclaPantallaCompleta { get; set; } = (int)Keys.F;
+
     public string Carpeta { get; set; } = "";       // vacio = automatica
     public int Aspecto { get; set; } = 0;           // indice en RelacionAspecto.Todas (6 = personalizada)
     public int AnchoPersonalizado { get; set; } = 21;  // numeros de la relacion personalizada (21:9)
@@ -32,6 +36,7 @@ public class Config {
 
     [JsonIgnore] public string Atajo => Describir(Modificadores, (Keys)Tecla);
     [JsonIgnore] public string AtajoRepetir => Describir(ModificadoresRepetir, (Keys)TeclaRepetir);
+    [JsonIgnore] public string AtajoPantallaCompleta => Describir(ModificadoresPantallaCompleta, (Keys)TeclaPantallaCompleta);
     // Si el config.json trae un numero que no existe, se comporta como copiar y guardar
     [JsonIgnore] public bool CopiaAlPortapapeles => Destino != DestinoCaptura.SoloGuardar;
     [JsonIgnore] public bool GuardaEnArchivo => Destino != DestinoCaptura.SoloCopiar;
