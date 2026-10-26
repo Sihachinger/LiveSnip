@@ -12,6 +12,8 @@ class CapaSeleccion : Form {
     enum Estado { Eligiendo, Ajustando }
     Estado _estado = Estado.Eligiendo;
 
+    bool _moviendo;                 // true mientras se arrastra la zona abierta para moverla
+    Point _desfaseMovimiento;       // distancia entre el clic y la esquina de la zona al empezar a moverla
     Point _inicio;          // donde se hizo clic para empezar a arrastrar
     Rectangle _seleccion;   // rectangulo actual, en coordenadas de la capa
     bool _arrastrando;      // true mientras el mouse esta presionado
@@ -83,14 +85,40 @@ class CapaSeleccion : Form {
         // Clic derecho cancela
         if (e.Button == MouseButtons.Right) { Close(); return; }
         if (_estado == Estado.Eligiendo) EmpezarSeleccion(e.Location);
+        else EmpezarMovimiento(e.Location);
     }
 
     protected override void OnMouseMove(MouseEventArgs e) {
         if (_estado == Estado.Eligiendo) ArrastrarSeleccion(e.Location);
+        else MoverZona(e.Location);
     }
 
     protected override void OnMouseUp(MouseEventArgs e) {
         if (_estado == Estado.Eligiendo) TerminarSeleccion();
+        else _moviendo = false;
+    }
+
+    // Con la zona abierta, arrastrar desde adentro la mueve, un clic afuera no hace nada
+    void EmpezarMovimiento(Point punto) {
+        if (!_seleccion.Contains(punto)) return;
+        _moviendo = true;
+        _desfaseMovimiento = new Point(punto.X - _seleccion.X, punto.Y - _seleccion.Y);
+    }
+
+    void MoverZona(Point punto) {
+        if (!_moviendo) {
+            // Sin arrastrar, el cursor avisa si desde ahi se puede mover la zona
+            var cursor = _seleccion.Contains(punto) ? Cursors.SizeAll : Cursors.Cross;
+            if (Cursor != cursor) Cursor = cursor;
+            return;
+        }
+
+        // La zona sigue al mouse pero sin salirse del monitor
+        int x = Math.Clamp(punto.X - _desfaseMovimiento.X, 0, Width - _seleccion.Width);
+        int y = Math.Clamp(punto.Y - _desfaseMovimiento.Y, 0, Height - _seleccion.Height);
+        _seleccion = new Rectangle(x, y, _seleccion.Width, _seleccion.Height);
+        _marco.Mostrar(_seleccion);
+        ActualizarRotulo();
     }
 
     void EmpezarSeleccion(Point punto) {
