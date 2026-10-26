@@ -328,7 +328,18 @@ class AppBandeja : ApplicationContext {
     // Saca la imagen de una zona de la pantalla, la copia al portapapeles y la guarda
     // Segun el destino elegido en la configuracion la copia al portapapeles, la guarda o hace las dos cosas
     void CapturarZona(Rectangle zona) {
-        using var imagen = _capturador.Capturar(zona);
+        using var captura = _capturador.Capturar(zona);
+
+        // Con la edicion activada la imagen pasa por el editor, y si se cancela no se copia ni se guarda nada
+        Bitmap? editada = _config.EditarAntesDeGuardar ? VentanaEdicion.Editar(captura) : null;
+        if (_config.EditarAntesDeGuardar && editada is null) {
+            _avisoDeGuardado = false;
+            _icono.ShowBalloonTip(1500, "LiveSnip", "Captura cancelada", ToolTipIcon.None);
+            return;
+        }
+        using var _ = editada;   // si se edito se libera al terminar, la captura original ya tiene su using
+        var imagen = editada ?? captura;
+
         if (_config.CopiaAlPortapapeles) Clipboard.SetImage(imagen);
 
         // Si solo se copia no hay nada que nombrar ni que guardar
