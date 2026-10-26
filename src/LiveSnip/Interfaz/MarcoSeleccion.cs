@@ -16,6 +16,7 @@ class MarcoSeleccion : Form {
 
     readonly Font _fuente = new("Segoe UI", 11);
     Rectangle _seleccion;   // en coordenadas de esta ventana, que coinciden con las de la capa
+    bool _conTiradores;     // true cuando la zona esta abierta para ajustarla
 
     public MarcoSeleccion() {
         FormBorderStyle = FormBorderStyle.None;
@@ -36,6 +37,12 @@ class MarcoSeleccion : Form {
             parametros.ExStyle |= WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE;
             return parametros;
         }
+    }
+
+    // Muestra u oculta los tiradores de las esquinas y los bordes, solo hacen falta cuando la zona se puede ajustar
+    public void MostrarTiradores(bool mostrar) {
+        _conTiradores = mostrar;
+        Invalidate(ZonaDeDibujo(_seleccion));
     }
 
     // Cambia la seleccion y redibuja solo lo que hace falta, el marco viejo y el nuevo
@@ -59,6 +66,15 @@ class MarcoSeleccion : Form {
         var grafico = e.Graphics;
         using var lapiz = new Pen(Color.Lime, Grosor);
         grafico.DrawRectangle(lapiz, _seleccion);
+
+        // Con la zona abierta se dibujan los tiradores, cuadritos verdes con borde negro para que se vean sobre cualquier fondo
+        if (_conTiradores) {
+            foreach (var tirador in Tiradores.Todos) {
+                var area = Tiradores.Area(_seleccion, tirador);
+                grafico.FillRectangle(Brushes.Lime, area);
+                grafico.DrawRectangle(Pens.Black, area);
+            }
+        }
 
         // Las medidas van sobre un cuadro negro, asi se leen bien y no queda borde rosado del color transparente
         string medidas = $"{_seleccion.Width} x {_seleccion.Height}";

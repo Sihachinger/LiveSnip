@@ -147,6 +147,7 @@ class CapaSeleccion : Form {
         // En modo edicion la zona queda abierta para corregirla, y se confirma con Enter o con doble clic
         if (_editar) {
             _estado = Estado.Ajustando;
+            _marco.MostrarTiradores(true);
             return;
         }
         Confirmar();
