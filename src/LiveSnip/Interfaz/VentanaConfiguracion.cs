@@ -19,6 +19,8 @@ class VentanaConfiguracion : Form {
     readonly Label _oscuridadValor = new() { AutoSize = false, TextAlign = ContentAlignment.MiddleLeft };
     readonly ComboBox _destino = new() { DropDownStyle = ComboBoxStyle.DropDownList };
     readonly TextBox _carpeta = new();
+    readonly CheckBox _editar = new() { Text = "Editar recorte antes de guardar" };
+    readonly ToolTip _ayuda = new();   // se guarda en un campo para que no lo recoja el recolector de basura
     readonly CheckBox _mostrarAviso = new() { Text = "Mostrar un aviso al terminar cada captura" };
     readonly CheckBox _pedirNombre = new() { Text = "Preguntar el nombre al guardar cada captura" };
     readonly CheckBox _iniciar = new() { Text = "Iniciar con Windows" };
@@ -32,7 +34,7 @@ class VentanaConfiguracion : Form {
         MaximizeBox = false;
         MinimizeBox = false;
         StartPosition = FormStartPosition.CenterScreen;
-        ClientSize = new Size(440, 578);
+        ClientSize = new Size(440, 605);
         Font = new Font("Segoe UI", 9);
         TopMost = true;
 
@@ -112,18 +114,24 @@ class VentanaConfiguracion : Form {
         _pedirNombre.Checked = Resultado.PedirNombre;
         Controls.Add(_pedirNombre);
 
+        // Modo edicion, se explica al pasar el mouse porque no entra todo en la casilla
+        _editar.SetBounds(15, 470, 410, 24);
+        _editar.Checked = Resultado.EditarAntesDeGuardar;
+        _ayuda.SetToolTip(_editar, "Permite mover y cambiar el tamaño de la zona, difuminar partes y agregar fecha o marca de agua antes de guardar");
+        Controls.Add(_editar);
+
         // Aviso al terminar la captura
-        _mostrarAviso.SetBounds(15, 470, 410, 24);
+        _mostrarAviso.SetBounds(15, 497, 410, 24);
         _mostrarAviso.Checked = Resultado.MostrarAviso;
         Controls.Add(_mostrarAviso);
 
         // Arranque con Windows
-        _iniciar.SetBounds(15, 497, 410, 24);
+        _iniciar.SetBounds(15, 524, 410, 24);
         _iniciar.Checked = Resultado.IniciarConWindows;
         Controls.Add(_iniciar);
 
-        var guardar = new Button { Text = "Guardar", DialogResult = DialogResult.OK, Left = 255, Top = 537, Width = 85 };
-        var cancelar = new Button { Text = "Cancelar", DialogResult = DialogResult.Cancel, Left = 345, Top = 537, Width = 80 };
+        var guardar = new Button { Text = "Guardar", DialogResult = DialogResult.OK, Left = 255, Top = 564, Width = 85 };
+        var cancelar = new Button { Text = "Cancelar", DialogResult = DialogResult.Cancel, Left = 345, Top = 564, Width = 80 };
         guardar.Click += (_, _) => {
             Resultado.Aspecto = _aspecto.SelectedIndex;
             Resultado.AnchoPersonalizado = (int)_ancho.Value;
@@ -133,6 +141,7 @@ class VentanaConfiguracion : Form {
             Resultado.Destino = (DestinoCaptura)_destino.SelectedIndex;
             Resultado.MostrarAviso = _mostrarAviso.Checked;
             Resultado.PedirNombre = _pedirNombre.Checked;
+            Resultado.EditarAntesDeGuardar = _editar.Checked;
             Resultado.IniciarConWindows = _iniciar.Checked;
         };
         Controls.Add(guardar);

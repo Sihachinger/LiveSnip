@@ -25,6 +25,7 @@ public class Config {
     public DestinoCaptura Destino { get; set; } = DestinoCaptura.CopiarYGuardar;   // a donde va cada captura
     public bool MostrarAviso { get; set; } = true;  // muestra el globo "Copiada y guardada en..."
     public bool PedirNombre { get; set; } = false;  // pregunta el nombre al guardar
+    public bool EditarAntesDeGuardar { get; set; } = false;   // modo edicion: ajustar la zona y editar la imagen antes de guardar
     public bool IniciarConWindows { get; set; } = false; // arrancar con Windows
 
     // Limites de la oscuridad de la capa, en porcentaje
