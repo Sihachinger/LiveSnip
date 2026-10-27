@@ -20,6 +20,7 @@ Windows SmartScreen puede avisar porque el programa no está firmado, para utili
 4. Para capturar de nuevo **la misma zona** sin volver a arrastrar, pulse **Ctrl + Alt + R** o elija "Repetir última captura" en el menú del icono. La zona se recuerda mientras la aplicación esté abierta.
 5. Si se abre LiveSnip cuando ya está abierto, se muestra la ventana de configuración de la copia que ya está en ejecución.
 6. Para abrir la captura más reciente, elija "Abrir última captura" en el menú del icono. Se abre en el visor de imágenes de Windows.
+7. Para capturar **el monitor entero** pulse **Ctrl + Alt + F**, elija "Capturar pantalla completa" en el menú del icono, o haga doble clic mientras la capa está abierta.
 
 | Tecla | Acción |
 |---|---|
@@ -33,6 +34,13 @@ Windows SmartScreen puede avisar porque el programa no está firmado, para utili
 | `Esc` o clic derecho | Cancelar |
 
 El aspecto también se puede fijar desde el menú del icono (clic derecho). Este queda guardado para la próxima vez.
+
+## Editar antes de guardar
+
+Active **Editar recorte antes de guardar** en Configuración, pestaña Edición. Con esa opción las capturas (también la de pantalla completa y la de repetir) pasan por dos pasos antes de guardarse:
+
+1. **Ajustar la zona.** Al soltar el mouse la zona queda abierta con cuadritos verdes en los bordes. Arrastre un cuadrito para cambiar el tamaño, o arrastre desde adentro para moverla. Con un aspecto fijo (teclas `1` a `6`) solo se usan los cuadritos de las esquinas, y las teclas `0` a `6` siguen cambiando el aspecto. **Enter** o doble clic dentro de la zona confirma, **Esc** o clic derecho cancela.
+2. **Editor de la imagen.** Se abre una ventana con la captura. Arrastre sobre la imagen para **difuminar** esa parte (en bloques del tamaño elegido arriba), active o apague la **fecha** y la **marca de agua** (se ven en vivo), y use **Deshacer** o `Ctrl + Z` para volver atrás. **Guardar** sigue el camino normal, **Cancelar** descarta la captura.
 
 ## Ejecutar desde el código
 
@@ -56,7 +64,7 @@ Genera `publish/LiveSnip.exe`, un único archivo portable que no necesita instal
 dotnet test tests/LiveSnip.Tests
 ```
 
-Las pruebas (xUnit) cubren la lógica sin ventanas, el cálculo de relaciones de aspecto, la limpieza de nombres de archivo y la configuración. No cubren la interfaz, el atajo global ni el registro de Windows.
+Las pruebas (xUnit) cubren la lógica sin ventanas: las relaciones de aspecto, el cambio de tamaño de la zona, el difuminado, el texto sobre la imagen, la limpieza de nombres de archivo y la configuración. No cubren la interfaz, el atajo global ni el registro de Windows.
 
 ## Configuración
 
@@ -64,12 +72,15 @@ Clic derecho en el icono → **Configuración...** para cambiar:
 
 - **Atajo:** haga clic en el campo y pulse la combinación (debe incluir Ctrl, Alt o Shift).
 - **Atajo para repetir la última captura:** se elige igual que el anterior (por defecto Ctrl + Alt + R). No puede ser igual al atajo principal.
+- **Atajo para capturar la pantalla completa:** se elige igual (por defecto Ctrl + Alt + F). Tampoco puede repetirse con los otros atajos.
 - **Aspecto por defecto.** Al elegir "Personalizada" se habilitan dos casillas para escribir el ancho y el alto como números enteros (de 1 a 32), por ejemplo 21 y 9. Esa relación es la que se usa con la tecla `6`.
 - **Oscuridad de la capa de selección:** deslizador de 0 a 90 % (por defecto 40 %). Cuanto más alto, más oscuro el fondo negro que aparece al capturar, y con 90 % queda casi negro. El marco verde y las medidas no se ven afectados.
 - **Cada captura se:** elige a dónde va cada captura, "Copia y se guarda" (por defecto), "Solo se copia" o "Solo se guarda". Con "Solo se copia" no se pregunta el nombre ni se escribe nada en el disco, y con "Solo se guarda" no se toca el portapapeles.
 - **Carpeta de guardado.**
 - **Preguntar el nombre:** si se activa, tras cada captura aparece un cuadro para escribir el nombre (con o sin `.png`). Si se deja vacío, se usa la fecha y hora. Si se cancela, la captura no se guarda (queda solo en el portapapeles). Si ya existe un archivo con ese nombre, se agrega `-2`, `-3`...
 - **Mostrar un aviso al terminar cada captura:** muestra el mensaje "Copiada y guardada en…". Si se apaga, solo se silencia ese aviso de éxito, los errores y los demás avisos (por ejemplo, que no se guardó al cancelar el nombre) se siguen mostrando.
+- **Editar recorte antes de guardar:** activa el ajuste de la zona y el editor descritos arriba.
+- **Fecha y marca de agua:** en la pestaña Edición se elige si se dibuja la fecha y la hora, un texto como marca de agua (hasta 60 caracteres, vacío = ninguna) y la esquina de cada uno. Solo se dibujan al guardar desde el editor, donde además se pueden apagar para esa captura.
 - **Iniciar con Windows:** arranca la app al iniciar sesión (usa la clave `Run` del usuario, no necesita administrador). Si se mueve el `.exe`, hay que abrirlo una vez para que se actualice la ruta.
 
 Se guarda en `%LOCALAPPDATA%\LiveSnip\config.json`.
@@ -85,11 +96,17 @@ src/LiveSnip/
 │   ├── RelacionAspecto.cs     Relaciones de aspecto y su respectivo cálculo
 │   ├── InicioAutomatico.cs    IInicioAutomatico: arranque con Windows
 │   ├── CapturadorPantalla.cs  ICapturadorPantalla: saca la imagen de una zona
-│   └── AlmacenCapturas.cs     IAlmacenCapturas: carpeta, nombre y guardado del PNG
+│   ├── AlmacenCapturas.cs     IAlmacenCapturas: carpeta, nombre y guardado del PNG
+│   ├── AjusteDeZona.cs        Cambio de tamaño de la zona con los tiradores
+│   ├── Pixelador.cs           Difuminado en bloques
+│   └── TextoEnImagen.cs       Fecha y marca de agua en una esquina
 └── Interfaz/                  Ventanas y bandeja
     ├── AppBandeja.cs          Coordina menú, atajos y flujo de captura
     ├── CapaSeleccion.cs       Capa para elegir la zona
     ├── VentanaConfiguracion.cs  Ventana de configuración
+    ├── MarcoSeleccion.cs      Marco verde, medidas y tiradores
+    ├── RotuloAyuda.cs         Cartel de ayuda de arriba
+    ├── VentanaEdicion.cs      Editor de la imagen (con BarraEdicion)
     ├── VentanaNombre.cs       Cuadro para el nombre
     └── VentanaAtajo.cs        Atajos globales
 tests/LiveSnip.Tests/          Pruebas de la lógica
@@ -103,12 +120,6 @@ Las ventanas se construyen por código, sin el diseñador de Visual Studio. El p
 
 - Solo captura el monitor donde está el mouse al pulsar el atajo.
 - Solo Windows.
-
-## Acerca del historial
-
-LiveSnip lo he desarrollado originalmente a principios de 2026. Esta versión es una **reescritura realizada en 2026** a partir de la versión final de ese proyecto, aplicando criterios actuales de organización, nombres y estilo.
-
-El comienzo del historial de commits de este repositorio es una **reconstrucción**: ordene el trabajo en pasos lógicos a partir del código final. **No es el historial original**.
 
 ## Licencia
 
