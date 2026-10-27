@@ -104,11 +104,17 @@ class VentanaEdicion : Form {
     }
 
     // Muestra la ventana con la captura, si se guarda devuelve la imagen retocada y si se cancela devuelve null
+    // Al guardar se le dibujan la fecha y la marca de agua que haya en la configuracion
     // Quien la recibe se encarga de liberarla
-    public static Bitmap? Editar(Bitmap captura) {
+    public static Bitmap? Editar(Bitmap captura, Config config) {
         using var ventana = new VentanaEdicion(captura);
         if (ventana.ShowDialog() != DialogResult.OK) return null;
-        return new Bitmap(ventana._imagen);
+
+        var resultado = new Bitmap(ventana._imagen);
+        // La fecha se dibuja primero asi, si las dos van en la misma esquina, la marca de agua queda encima
+        if (config.AgregarFecha) TextoEnImagen.Dibujar(resultado, TextoEnImagen.FormatoFecha(DateTime.Now), config.EsquinaFecha);
+        TextoEnImagen.Dibujar(resultado, config.MarcaDeAgua, config.EsquinaMarca);
+        return resultado;
     }
 
     protected override void OnShown(EventArgs e) {

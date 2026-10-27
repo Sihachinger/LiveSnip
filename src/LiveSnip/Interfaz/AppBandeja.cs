@@ -331,7 +331,7 @@ class AppBandeja : ApplicationContext {
         using var captura = _capturador.Capturar(zona);
 
         // Con la edicion activada la imagen pasa por el editor, y si se cancela no se copia ni se guarda nada
-        Bitmap? editada = _config.EditarAntesDeGuardar ? VentanaEdicion.Editar(captura) : null;
+        Bitmap? editada = _config.EditarAntesDeGuardar ? VentanaEdicion.Editar(captura, _config) : null;
         if (_config.EditarAntesDeGuardar && editada is null) {
             _avisoDeGuardado = false;
             _icono.ShowBalloonTip(1500, "LiveSnip", "Captura cancelada", ToolTipIcon.None);
