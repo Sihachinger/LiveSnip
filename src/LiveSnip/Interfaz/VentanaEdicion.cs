@@ -1,3 +1,5 @@
+using LiveSnip.Nucleo;
+
 namespace LiveSnip.Interfaz;
 
 // Ventana para retocar la captura antes de guardarla, muestra la imagen y se guarda o se cancela
@@ -5,11 +7,14 @@ namespace LiveSnip.Interfaz;
 class VentanaEdicion : Form {
     const int AltoBotones = 50;
     const int MargenVentana = 80;   // espacio que se deja libre alrededor de la ventana en el monitor
+    const int TamanoBloque = 10;    // lado de los cuadritos al difuminar, mas adelante se podra elegir
 
     readonly Bitmap _imagen;                       // copia de trabajo, la original no se toca
     readonly Panel _zonaImagen = new();            // con barras de desplazamiento si la imagen no entra
     readonly PictureBox _vista = new();
     readonly FlowLayoutPanel _barraBotones = new();   // los botones se acomodan desde la derecha
+    Point? _inicioArrastre;     // donde se empezo a arrastrar para difuminar, null si no se esta arrastrando
+    Rectangle _zonaArrastre;    // zona que se esta marcando, en coordenadas de la imagen
 
     VentanaEdicion(Bitmap original) {
         _imagen = new Bitmap(original);
@@ -24,6 +29,10 @@ class VentanaEdicion : Form {
 
         _vista.SizeMode = PictureBoxSizeMode.AutoSize;
         _vista.Image = _imagen;
+        _vista.MouseDown += (_, e) => EmpezarArrastre(e);
+        _vista.MouseMove += (_, e) => ArrastrarZona(e);
+        _vista.MouseUp += (_, e) => TerminarArrastre(e);
+        _vista.Paint += (_, e) => DibujarZona(e.Graphics);
         _zonaImagen.Dock = DockStyle.Fill;
         _zonaImagen.AutoScroll = true;
         _zonaImagen.BackColor = Color.FromArgb(40, 40, 40);
@@ -58,6 +67,40 @@ class VentanaEdicion : Form {
         _barraBotones.Controls.Add(guardar);
         AcceptButton = guardar;
         CancelButton = cancelar;
+    }
+
+    // Arrastrar con el boton izquierdo marca una zona, y al soltar se difumina
+    void EmpezarArrastre(MouseEventArgs e) {
+        if (e.Button != MouseButtons.Left) return;
+        _inicioArrastre = e.Location;
+        _zonaArrastre = Rectangle.Empty;
+    }
+
+    void ArrastrarZona(MouseEventArgs e) {
+        if (_inicioArrastre is not Point inicio) return;
+        _zonaArrastre = Rectangle.FromLTRB(
+            Math.Min(inicio.X, e.X), Math.Min(inicio.Y, e.Y),
+            Math.Max(inicio.X, e.X), Math.Max(inicio.Y, e.Y));
+        _vista.Invalidate();
+    }
+
+    void TerminarArrastre(MouseEventArgs e) {
+        if (_inicioArrastre is null) return;
+        _inicioArrastre = null;
+
+        // Ignora los clics sueltos
+        if (_zonaArrastre.Width >= 3 && _zonaArrastre.Height >= 3) {
+            Pixelador.Pixelar(_imagen, _zonaArrastre, TamanoBloque);
+        }
+        _zonaArrastre = Rectangle.Empty;
+        _vista.Invalidate();
+    }
+
+    // Marco rojo punteado sobre la zona que se esta marcando
+    void DibujarZona(Graphics grafico) {
+        if (_inicioArrastre is null || _zonaArrastre.Width < 1) return;
+        using var lapiz = new Pen(Color.Red, 2) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash };
+        grafico.DrawRectangle(lapiz, _zonaArrastre);
     }
 
     // Muestra la ventana con la captura, si se guarda devuelve la imagen retocada y si se cancela devuelve null
