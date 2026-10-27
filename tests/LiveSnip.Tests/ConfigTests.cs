@@ -121,4 +121,18 @@ public class ConfigTests {
 
         Assert.Equal("A", original.Carpeta);
     }
+
+    [Fact]
+    public void LaFechaYLaMarcaDeAgua_VienenDesactivadasPorDefecto() {
+        var config = new Config();
+
+        Assert.False(config.AgregarFecha || config.MarcaDeAgua != "");
+    }
+
+    [Fact]
+    public void Copiar_TambienCopiaLaMarcaDeAgua() {
+        var copia = new Config { MarcaDeAgua = "LiveSnip" }.Copiar();
+
+        Assert.Equal("LiveSnip", copia.MarcaDeAgua);
+    }
 }

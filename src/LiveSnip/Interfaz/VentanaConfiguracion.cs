@@ -20,6 +20,10 @@ class VentanaConfiguracion : Form {
     readonly ComboBox _destino = new() { DropDownStyle = ComboBoxStyle.DropDownList };
     readonly TextBox _carpeta = new();
     readonly CheckBox _editar = new() { Text = "Editar recorte antes de guardar" };
+    readonly CheckBox _agregarFecha = new() { Text = "Agregar la fecha y la hora a la imagen" };
+    readonly ComboBox _esquinaFecha = new() { DropDownStyle = ComboBoxStyle.DropDownList };
+    readonly TextBox _marcaDeAgua = new() { MaxLength = 60 };
+    readonly ComboBox _esquinaMarca = new() { DropDownStyle = ComboBoxStyle.DropDownList };
     readonly ToolTip _ayuda = new();   // se guarda en un campo para que no lo recoja el recolector de basura
 
     // Los ajustes se reparten en pestañas para que la ventana no crezca con cada ajuste nuevo
@@ -131,6 +135,22 @@ class VentanaConfiguracion : Form {
         _ayuda.SetToolTip(_editar, "Permite mover y cambiar el tamaño de la zona, difuminar partes y agregar fecha o marca de agua antes de guardar");
         _paginaEdicion.Controls.Add(_editar);
 
+        // Fecha y marca de agua: lo que se elige aca es lo que el editor dibuja en la imagen
+        _agregarFecha.SetBounds(15, 55, 385, 24);
+        _agregarFecha.Checked = Resultado.AgregarFecha;
+        _agregarFecha.CheckedChanged += (_, _) => _esquinaFecha.Enabled = _agregarFecha.Checked;
+        _paginaEdicion.Controls.Add(_agregarFecha);
+        _paginaEdicion.Controls.Add(new Label { Text = "Esquina de la fecha:", Left = 35, Top = 87, AutoSize = true });
+        ConfigurarEsquina(_esquinaFecha, Resultado.EsquinaFecha, 38, 110);
+        _esquinaFecha.Enabled = _agregarFecha.Checked;
+
+        _paginaEdicion.Controls.Add(new Label { Text = "Marca de agua (vacío = ninguna):", Left = 15, Top = 160, AutoSize = true });
+        _marcaDeAgua.SetBounds(15, 183, 385, 25);
+        _marcaDeAgua.Text = Resultado.MarcaDeAgua;
+        _paginaEdicion.Controls.Add(_marcaDeAgua);
+        _paginaEdicion.Controls.Add(new Label { Text = "Esquina de la marca de agua:", Left = 35, Top = 218, AutoSize = true });
+        ConfigurarEsquina(_esquinaMarca, Resultado.EsquinaMarca, 38, 241);
+
         // Aviso al terminar la captura
         _mostrarAviso.SetBounds(15, 290, 385, 24);
         _mostrarAviso.Checked = Resultado.MostrarAviso;
@@ -153,12 +173,24 @@ class VentanaConfiguracion : Form {
             Resultado.MostrarAviso = _mostrarAviso.Checked;
             Resultado.PedirNombre = _pedirNombre.Checked;
             Resultado.EditarAntesDeGuardar = _editar.Checked;
+            Resultado.AgregarFecha = _agregarFecha.Checked;
+            Resultado.EsquinaFecha = (EsquinaImagen)_esquinaFecha.SelectedIndex;
+            Resultado.MarcaDeAgua = _marcaDeAgua.Text.Trim();
+            Resultado.EsquinaMarca = (EsquinaImagen)_esquinaMarca.SelectedIndex;
             Resultado.IniciarConWindows = _iniciar.Checked;
         };
         Controls.Add(guardar);
         Controls.Add(cancelar);
         AcceptButton = guardar;
         CancelButton = cancelar;
+    }
+
+    // Llena la lista de esquinas, el orden es el mismo que el de EsquinaImagen
+    void ConfigurarEsquina(ComboBox lista, EsquinaImagen elegida, int x, int y) {
+        lista.SetBounds(x, y, 200, 25);
+        lista.Items.AddRange(new object[] { "Arriba a la izquierda", "Arriba a la derecha", "Abajo a la izquierda", "Abajo a la derecha" });
+        lista.SelectedIndex = Math.Clamp((int)elegida, 0, lista.Items.Count - 1);
+        _paginaEdicion.Controls.Add(lista);
     }
 
     // Muestra el porcentaje elegido al lado del deslizador
