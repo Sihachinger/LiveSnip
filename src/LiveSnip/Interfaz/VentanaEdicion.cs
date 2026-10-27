@@ -3,20 +3,25 @@ using LiveSnip.Nucleo;
 namespace LiveSnip.Interfaz;
 
 // Ventana para retocar la captura antes de guardarla, muestra la imagen y se guarda o se cancela
-// Las herramientas de edicion se agregan en los pasos siguientes
+// Las opciones estan en la barra de arriba, los botones de abajo
 class VentanaEdicion : Form {
     const int AltoBotones = 50;
     const int MargenVentana = 80;   // espacio que se deja libre alrededor de la ventana en el monitor
-    const int TamanoBloque = 10;    // lado de los cuadritos al difuminar, mas adelante se podra elegir
 
     readonly Bitmap _imagen;                       // copia de trabajo, la original no se toca
     readonly Panel _zonaImagen = new();            // con barras de desplazamiento si la imagen no entra
     readonly PictureBox _vista = new();
     readonly FlowLayoutPanel _barraBotones = new();   // los botones se acomodan desde la derecha
+    readonly Config _config;
+    readonly BarraEdicion _barra;
+    readonly Stack<Bitmap> _anteriores = new();   // como estaba la imagen antes de cada difuminado, para poder deshacer
+    Bitmap? _vistaPrevia;                         // la imagen con la fecha y la marca de agua dibujadas, es lo que se ve
     Point? _inicioArrastre;     // donde se empezo a arrastrar para difuminar, null si no se esta arrastrando
     Rectangle _zonaArrastre;    // zona que se esta marcando, en coordenadas de la imagen
 
-    VentanaEdicion(Bitmap original) {
+    VentanaEdicion(Bitmap original, Config config) {
+        _config = config;
+        _barra = new BarraEdicion(config);
         _imagen = new Bitmap(original);
 
         Text = "LiveSnip - Editar captura";
@@ -28,7 +33,7 @@ class VentanaEdicion : Form {
         MinimumSize = new Size(380, 200);
 
         _vista.SizeMode = PictureBoxSizeMode.AutoSize;
-        _vista.Image = _imagen;
+        ActualizarVista();
         _vista.MouseDown += (_, e) => EmpezarArrastre(e);
         _vista.MouseMove += (_, e) => ArrastrarZona(e);
         _vista.MouseUp += (_, e) => TerminarArrastre(e);
@@ -45,13 +50,17 @@ class VentanaEdicion : Form {
         // La zona de la imagen se agrega primero asi los botones quedan abajo sin tapar nada
         Controls.Add(_zonaImagen);
         Controls.Add(_barraBotones);
+        Controls.Add(_barra);
+        _barra.OpcionesCambiadas += (_, _) => ActualizarVista();
+        _barra.DeshacerPedido += (_, _) => Deshacer();
+        KeyPreview = true;
     }
 
     // Tamaño que muestra la imagen entera si entra en el monitor y si no, lo que deja el margen
     Size TamanoInicial() {
         var disponible = Screen.FromPoint(Cursor.Position).WorkingArea.Size;
         int ancho = Math.Min(_imagen.Width + 2, disponible.Width - MargenVentana);
-        int alto = Math.Min(_imagen.Height + 2 + AltoBotones, disponible.Height - MargenVentana);
+        int alto = Math.Min(_imagen.Height + 2 + AltoBotones + BarraEdicion.Alto, disponible.Height - MargenVentana);
         return new Size(Math.Max(ancho, 380), Math.Max(alto, 200));
     }
 
@@ -90,7 +99,9 @@ class VentanaEdicion : Form {
 
         // Ignora los clics sueltos
         if (_zonaArrastre.Width >= 3 && _zonaArrastre.Height >= 3) {
-            Pixelador.Pixelar(_imagen, _zonaArrastre, TamanoBloque);
+            _anteriores.Push(new Bitmap(_imagen));
+            Pixelador.Pixelar(_imagen, _zonaArrastre, _barra.TamanoBloque);
+            ActualizarVista();
         }
         _zonaArrastre = Rectangle.Empty;
         _vista.Invalidate();
@@ -103,18 +114,47 @@ class VentanaEdicion : Form {
         grafico.DrawRectangle(lapiz, _zonaArrastre);
     }
 
+    // Imagen nueva con la fecha y la marca de agua dibujadas segun las casillas de la barra
+    // La fecha se dibuja primero asi, si las dos van en la misma esquina, la marca de agua queda encima
+    Bitmap Componer() {
+        var resultado = new Bitmap(_imagen);
+        if (_barra.ConFecha) TextoEnImagen.Dibujar(resultado, TextoEnImagen.FormatoFecha(DateTime.Now), _config.EsquinaFecha);
+        if (_barra.ConMarca) TextoEnImagen.Dibujar(resultado, _config.MarcaDeAgua, _config.EsquinaMarca);
+        return resultado;
+    }
+
+    // Rehace la imagen que se ve, con la fecha y la marca de agua para saber como va a quedar
+    void ActualizarVista() {
+        var anterior = _vistaPrevia;
+        _vistaPrevia = Componer();
+        _vista.Image = _vistaPrevia;
+        anterior?.Dispose();
+    }
+
+    // Vuelve a como estaba antes del ultimo difuminado
+    void Deshacer() {
+        if (_anteriores.Count == 0) return;
+        using var anterior = _anteriores.Pop();
+        using (var grafico = Graphics.FromImage(_imagen)) {
+            grafico.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
+            grafico.DrawImageUnscaled(anterior, 0, 0);
+        }
+        ActualizarVista();
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e) {
+        base.OnKeyDown(e);
+        if (e.Control && e.KeyCode == Keys.Z) {
+            e.SuppressKeyPress = true;
+            Deshacer();
+        }
+    }
+
     // Muestra la ventana con la captura, si se guarda devuelve la imagen retocada y si se cancela devuelve null
-    // Al guardar se le dibujan la fecha y la marca de agua que haya en la configuracion
     // Quien la recibe se encarga de liberarla
     public static Bitmap? Editar(Bitmap captura, Config config) {
-        using var ventana = new VentanaEdicion(captura);
-        if (ventana.ShowDialog() != DialogResult.OK) return null;
-
-        var resultado = new Bitmap(ventana._imagen);
-        // La fecha se dibuja primero asi, si las dos van en la misma esquina, la marca de agua queda encima
-        if (config.AgregarFecha) TextoEnImagen.Dibujar(resultado, TextoEnImagen.FormatoFecha(DateTime.Now), config.EsquinaFecha);
-        TextoEnImagen.Dibujar(resultado, config.MarcaDeAgua, config.EsquinaMarca);
-        return resultado;
+        using var ventana = new VentanaEdicion(captura, config);
+        return ventana.ShowDialog() == DialogResult.OK ? ventana.Componer() : null;
     }
 
     protected override void OnShown(EventArgs e) {
@@ -125,6 +165,8 @@ class VentanaEdicion : Form {
     protected override void Dispose(bool disposing) {
         if (disposing) {
             _vista.Image = null;
+            _vistaPrevia?.Dispose();
+            foreach (var anterior in _anteriores) anterior.Dispose();
             _imagen.Dispose();
         }
         base.Dispose(disposing);
