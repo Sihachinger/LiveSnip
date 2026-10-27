@@ -15,7 +15,7 @@
     <Authors>Victor Sihachinger</Authors>
     <Company>Victor Sihachinger</Company>
     <Copyright>© 2026 Victor Sihachinger</Copyright>
-    <Version>1.3.0</Version>
+    <Version>1.4.0</Version>
     <!-- Sin esto .NET agrega el hash del commit a la version -->
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <!-- Coordenadas reales en pantallas con escala (125%, 150%...) -->
